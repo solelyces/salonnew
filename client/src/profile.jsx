@@ -101,7 +101,7 @@ const Profile = () => {
                 <img src={profile} alt="Profile" loading="lazy" />
                 <span className="status-badge"><i className="bi bi-shield-check"></i></span>
               </div>
-              <h4>{user?.name || "Guest"}</h4>
+              <h4>{user?.username || "Guest"}</h4>
               <div className="user-status">
                 <i className="bi bi-award"></i>
                 <span>Active Member</span>

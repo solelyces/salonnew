@@ -239,7 +239,6 @@ app.put('/api/transactions/:id', (req, res) => {
 });
   
   app.post('/transactions', (req, res) => {
-    user_id:user.id;
     
     const { user_id, services_id, paymentinfo_id, appointment_date, appointment_time, total, status } = req.body;
 

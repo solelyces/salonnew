@@ -8,9 +8,19 @@ import Modal from 'react-modal';
 
 
 const Book = ({ user_id }) => {
+   const [userId, setUserId] = useState(null);
+   console.log('Current user_id:', userId);
+   
 
   useEffect(() => {
-    Modal.setAppElement('#app');
+        const userDataStr = localStorage.getItem('user');
+    if (userDataStr) {
+      const userData = JSON.parse(userDataStr);
+      console.log('User data from localStorage in Book:', userData);
+      setUserId(userData.user_id);
+    } else {
+      console.log('No user data found in localStorage');
+    }
   }, []);
   
   const [services, setServices] = useState([]);
@@ -88,40 +98,60 @@ const Book = ({ user_id }) => {
   };
 
 const confirmBooking = async () => {
-    if (window.confirm("Are you sure you want to confirm your booking for the selected services?")) {
-        try {
-            for (const service of selectedServices) {
-                const response = await fetch('http://localhost:3000/transactions', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        user_id: user_id,
-                        services_id: service.services_id,
-                        paymentinfo_id: parseInt(selectedPayment, 10), // Ensure this is an integer
-                        appointment_date: appointmentDate,
-                        appointment_time: appointmentTime,
-                        total: service.price,
-                        status: 'Pending',
-                    }),
-                });
+  const paymentId = parseInt(selectedPayment, 10);
 
-                if (!response.ok) {
-                    const error = await response.json();
-                    console.error('Error response:', error); // Log the entire error response
-                    throw new Error(`Error booking service: ${service.services_name}. ${error.message || 'No error message provided.'}`);
-                }
-            }
-            alert('Services booked successfully!');
-            setSelectedServices([]);
-            setConfirmationModalIsOpen(false);
-        } catch (error) {
-            alert('There was a problem with your booking. Please try again later.');
-            console.error(error);
+  // Validate paymentId
+  if (isNaN(paymentId) || selectedPayment === "") {
+    alert("Please select a valid payment method.");
+    return;
+  }
+
+  if (window.confirm("Are you sure you want to confirm your booking for the selected services?")) {
+    console.log('Selected Payment ID:', paymentId);
+    console.log('Preparing to submit:', {
+      user_id: userId,
+      services_id: selectedServices.map(service => service.services_id), // Collect all service IDs
+      paymentinfo_id: paymentId,
+      appointment_date: appointmentDate,
+      appointment_time: appointmentTime,
+      total: selectedServices.reduce((total, service) => total + service.price, 0), // Calculate total price
+      status: 'Pending',
+    });  
+    try {
+      for (const service of selectedServices) {
+        const response = await fetch('http://localhost:3000/transactions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            user_id: userId,
+            services_id: service.services_id,
+            paymentinfo_id: paymentId,
+            appointment_date: appointmentDate,
+            appointment_time: appointmentTime,
+            total: service.price,
+            status: 'Pending',
+          }),
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          console.error('Error response:', error);
+          throw new Error(`Error booking service: ${service.services_name}. ${error.message || 'No error message provided.'}`);
         }
+      }
+      alert('Services booked successfully!');
+      setSelectedServices([]);
+      setConfirmationModalIsOpen(false);
+    } catch (error) {
+      alert('There was a problem with your booking. Please try again later.');
+      console.error(error);
     }
+  }
 };
+
+
 
 
 
@@ -276,26 +306,27 @@ const confirmBooking = async () => {
                 required
               />
             </div>
-            <div className="form-group">
+              <div className="form-group">
                 <label htmlFor="paymentMethod">Select Payment Method:</label>
-            <select
-                id="paymentMethod"
-                className="form-control"
-                value={selectedPayment}
-                onChange={(e) => {
-                    console.log('Selected Payment Value:', e.target.value); // Debugging line
+                <select
+                  id="paymentMethod"
+                  className="form-control"
+                  value={selectedPayment}
+                  onChange={(e) => {
                     setSelectedPayment(e.target.value);
-                }}
-                required
-            >
-                <option value="">Select a payment method</option>
-                {paymentOptions.map(option => (
+                  }}
+                  required
+                >
+                  <option value="">Select a payment method</option> {/* Default option */}
+                  {paymentOptions.map((option) => (
                     <option key={option.paymentinfo_id} value={option.paymentinfo_id}>
-                        {option.paymentdescription}
+                      {option.paymentdescription}
                     </option>
-                ))}
-            </select>
-            </div>
+                  ))}
+                </select>
+              </div>
+
+
             <div className="Modal__ButtonContainer">
               <button className="AddMoreServices" onClick={addMoreServices}>Add Services</button>
               <button className="Modal_Close" onClick={confirmBooking}>Confirm Booking</button>

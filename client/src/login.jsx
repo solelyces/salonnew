@@ -8,51 +8,49 @@ function LoginForm({ onLoginSuccess }) {
   const [role, setRole] = useState('Client');
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
+  const [hover, setHover] = useState(false);
+
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setMessage('');
-  
+
     if (!username || !password) {
       setMessage('Please enter username and password');
       return;
     }
-  
+
     setLoading(true);
-  
+
     try {
       const response = await axios.post('http://localhost:3000/login', {
         username,
         password,
         role,
       });
-  
+
       if (response.status === 200) {
-          const userData = {
-    username: username, // from login form
-    role: role,
-    user_id: 22,
-  };
-        console.log('Response data: ', userData)// contains user info, e.g., userData.username, userData.user_id
+        // Simulate backend user object
+        const userData = {
+          username: username,  // Or: response.data.username
+          role: role,
+          user_id: 22          // This should ideally come from the backend
+        };
+
+        // ✅ Store user data in localStorage
+        localStorage.setItem("user", JSON.stringify(userData));
+
+        console.log('User data stored in localStorage:', userData);
         setMessage('Login successful!');
         alert(`Welcome Back, ${userData.username}!`);
-        onLoginSuccess(userData); // pass the user data object
-        if (role === 'Admin') {
-          navigate('/admin');
-        } else {
-          navigate('/home');
-        }
+
+        onLoginSuccess(userData); // Optional if you're using lifting state
+        navigate(role === 'Admin' ? '/admin' : '/home');
       } else {
-        // Handle specific error messages based on the response
-        if (response.data.message) {
-          setMessage(response.data.message);
-        } else {
-          setMessage('Login failed');
-        }
+        setMessage(response.data.message || 'Login failed');
       }
     } catch (error) {
-      // Check if the error response contains specific messages
       if (error.response) {
         if (error.response.status === 401) {
           setMessage('Invalid username or password');
@@ -69,8 +67,6 @@ function LoginForm({ onLoginSuccess }) {
       setLoading(false);
     }
   };
-  
-  
 
   const handleBack = () => {
     navigate(-1); // Go back to the previous page
@@ -132,12 +128,9 @@ function LoginForm({ onLoginSuccess }) {
     },
   };
 
-  // Optional: handle hover effect for icon using React state
-  const [hover, setHover] = React.useState(false);
-
   return (
     <form onSubmit={handleLogin} style={styles.form}>
-      {/* Back Icon as SVG */}
+      {/* Back Icon */}
       <svg
         onClick={handleBack}
         onMouseEnter={() => setHover(true)}
@@ -148,7 +141,12 @@ function LoginForm({ onLoginSuccess }) {
         aria-label="Go back"
         role="button"
         tabIndex={0}
-        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleBack(); } }}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            handleBack();
+          }
+        }}
       >
         <path d="M15.41 7.41 14 6l-6 6 6 6 1.41-1.41L10.83 12z" />
       </svg>
@@ -179,7 +177,11 @@ function LoginForm({ onLoginSuccess }) {
         </select>
       </label><br />
 
-      <button type="submit" disabled={loading} style={{ ...styles.button, ...(loading ? styles.buttonDisabled : {}) }}>
+      <button
+        type="submit"
+        disabled={loading}
+        style={{ ...styles.button, ...(loading ? styles.buttonDisabled : {}) }}
+      >
         {loading ? 'Logging in...' : 'Login'}
       </button>
 

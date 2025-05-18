@@ -1,0 +1,287 @@
+/* ServicesPage.css */
+#Body {
+    margin-top: 100px; /* Space above the body */
+    padding: 20px; /* Padding around the body */  
+
+    color: #333;
+}
+
+/* ServicesPage.css */
+
+.gallery-container {
+    display: flex; /* Flex display for internal alignment */
+    flex-wrap: wrap; /* Allow items to wrap */
+    gap: 20px; /* Space between items */
+    margin: 0 21%; /* Center the container */
+}
+
+#Body h1{
+    text-align: center;
+    color: #3e1b18;
+    font-size: 40px;
+    margin-bottom: 20px;
+}
+
+.Body-P{
+    text-align: center;
+    color: #3e1b18;
+    background-color: #ede8e0;
+    padding: 20px 180px;
+    width: 75%;
+    justify-items: center;
+    align-items: center;
+    margin: 0 auto; /* Center the paragraph */
+}
+
+.service-card {
+    cursor: pointer;
+    text-align: center;
+    background-color: #ffffff; /* White background for each service card */
+    border-radius: 8px; /* Rounded corners */
+    padding: 10px; /* Padding inside each card */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); /* Shadow for depth */
+    margin: 30px; /* Margin around each card for spacing */
+    flex: 1 1 200px; /* Allow flex items to grow/shrink but not exceed a min width */
+    max-width: 300px; /* Set a maximum width for the card */
+}
+
+.service-card:hover {
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2); /* Shadow on hover for effect */
+    transform: translateY(-5px); /* Lift effect on hover */
+}
+
+.service-card:active {
+    transform: translateY(0); /* Reset on click */
+}
+
+/* Responsive design for smaller screens */
+@media (max-width: 992px) {
+    .gallery-container {
+        flex-direction: column; /* Stack items vertically on small screens */
+        align-items: center; /* Center items */
+    }
+    .service-card {
+        max-width: 90%; /* Full width on small screens */
+    }
+    #Body{/* Smaller font size for smaller screens */
+      margin-top: 200px;
+    }
+}
+
+
+
+
+.service-card img {
+    width: 100%; /* Full width of the card */
+    height: auto; /* Responsive height */
+    border-radius: 8px; /* Rounded corners for image */
+}
+
+.service-card h3 {
+    margin: 10px 0;
+}
+
+.service-card p {
+    margin: 10px 0;
+}
+
+.service-card button {
+    background-color: #cb9909;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.service-card button:hover {
+    background-color: #3e1b18;
+}
+
+.service-card button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+/* Updated modal styles remain unchanged */
+  
+  /* Updated modal styles */
+  
+
+  .gallery-container h3{
+    font-size: x-large;
+  }
+  .Modal__Content {
+    display: block; /* Ensure the modal is block element */
+    position: relative; /* Positioning for modal contents */
+    background-color: rgba(255, 255, 255, 0.3);
+    
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+    border-radius: 20px; /* Rounded corners */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); /* Add a shadow */
+    padding: 20px; /* Padding inside the modal */
+    max-width: 35%; /* Make the modal responsive */
+    margin: auto; /* Center the modal horizontally */
+    height: auto;
+    margin-top: 135px;
+  }
+
+  .Modal__ContentConfirmation{
+    display: block; /* Ensure the modal is block element */
+    position: relative; /* Positioning for modal contents */
+    background-color: rgba(255, 255, 255, 0.3);
+    
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(2px);
+    border-radius: 8px; /* Rounded corners */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); /* Add a shadow */
+    padding: 20px; /* Padding inside the modal */
+    width: 35%;
+    margin: auto; /* Center the modal horizontally */
+    height: auto;
+  }
+  
+  /* Center the Modal */
+  .Overlay {
+    display: flex; /* Flexbox for centering */
+    position: fixed; /* Fixed position for full-screen overlay */
+    z-index: 1; /* Ensure it appears above other content */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Prevent overflow */
+    background-color: rgba(255, 255, 255, 0.3);
+    
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+    justify-content: center; /* Center horizontally */
+    align-items: center; /* Center vertically */
+  }
+  
+  /* Close button for the modal */
+  .Modal__CloseButton {
+    position: absolute; /* Positioning relative to modal */
+    top: 10px; /* Adjust top position */
+    right: 10px; /* Adjust right position */
+    background: none; /* Remove background */
+    cursor: pointer; /* Use pointer cursor */
+    font-size: 30px; /* Font size */
+    color: rgb(255, 0, 0); /* Text color */
+    width: 30px; /* Width */
+    height: 30px; /* Height */
+    display: flex; /* Center text in button */
+    align-items: center; /* Align text vertically */
+    justify-content: center; /* Align text horizontally */
+    padding: 20px; /* Padding around button */
+    text-align: center;
+  }
+
+  .Modal__CloseButton:hover {
+    background-color: #ff0000; /* Background on hover */
+    color: white; /* Text color on hover */
+  }
+
+
+  
+  .Modal__Title {
+    font-size: 24px; /* Title font size */
+    margin-bottom: 10px; /* Space below title */
+    
+  }
+  
+  .Modal__Description {
+    margin: 15px 0; /* Margin around description */
+    font-size: 16px; /* Description font size */
+    border: #333 2px solid;
+    border-radius: 20px;
+    padding: 20px;
+    margin-bottom: 30px;
+    text-align: center;
+  }
+
+  .Modal__DescriptionPrice {
+    background-color: #837c74;
+    color: white;
+    text-align: center;
+    border-radius: 10px;
+    margin: 25px;
+    
+  }
+  
+  .Modal__Image {
+    width: 30%; /* Full width */
+    margin: 0 34%; /* Space around image */
+  }
+
+.Remove {
+    width: 100px;
+    height: 25px;
+    border-radius: 8px;
+    float: right;
+    justify-items: center;
+    padding-top: 0; /* Removed negative padding */
+    background-color: #3e1b18;
+    color: white;
+    cursor: pointer; /* Added cursor pointer for better UX */
+
+}
+
+
+.Modal__ButtonContainer {
+  display: flex; /* Use flexbox for layout */
+  justify-content: space-between; /* Add space between items */
+  margin-top: 20px; /* Space above buttons */
+}
+
+.AddMoreServices{ 
+  border: #3e1b18 solid 2px; /* No border */
+  padding: 10px 20px; /* Padding for buttons */
+  border-radius: 5px; /* Rounded corners */
+  cursor: pointer; /* Pointer cursor on hover */
+  width: 40%; /* Set width to occupy half of the parent container */
+  background-color: #ede8e0;
+  color: #3e1b18; /* Button text color */
+}
+.Modal_Close {
+  background-color: #cb9909; /* Button background color */
+  color: white; /* Button text color */
+  border: none; /* No border */
+  padding: 10px 20px; /* Padding for buttons */
+  border-radius: 5px; /* Rounded corners */
+  cursor: pointer; /* Pointer cursor on hover */
+  width: 40%; /* Set width to occupy half of the parent container */
+}
+
+.Modal_Close:hover {
+  background-color: #3e1b18; /* Button background color on hover */
+  color: white; /* Button text color on hover */
+}
+
+.AddMoreServices:hover {
+  /* Button text color */
+  border: #cb9909 solid 2px; /* No border */
+}
+
+.addToBook{
+  border: 1px solid #3e1b18; /* No border */
+  background-color: #ede8e0;
+  padding: 8px 18px; /* Padding for buttons */
+  border-radius: 50px; /* Rounded corners */
+  cursor: pointer; /* Pointer cursor on hover */
+  width: 30%; /* Set width to occupy half of the parent container */
+  margin-left: 35%;
+  color: black;
+
+}
+
+.addToBook:hover {
+  background-color: #3e1b18; /* Button background color on hover */
+  color: white; /* Button text color on hover */
+}
+
+
+.Modal__ContentConfirmation ul li{
+  margin: 35px 0;
+}

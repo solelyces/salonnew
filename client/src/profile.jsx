@@ -57,6 +57,31 @@ const Profile = () => {
     setActiveContent(content);
   };
 
+function deleteAppointmentsForUser() {
+    if (confirm("Are you sure you want to delete all your appointments? This action cannot be undone.")) {
+        // Proceed with delete
+        fetch('http://localhost:3000/transactions/delete-by-user', {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ user_id: user.user_id })
+        })
+        .then(res => res.json())
+        .then(data => {
+            alert(data.message); // Notify user of success
+            setBookings([]);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert("An error occurred while deleting your appointments.");
+        });
+    } else {
+        // User canceled
+        alert("Deletion canceled.");
+    }
+}
+
   const handleLogout = () => {
     const confirmLogout = window.confirm("Are you sure you want to log out?");
     if (confirmLogout) {
@@ -209,7 +234,7 @@ const Profile = () => {
                       </button>
                       <button
                         className="delete-btn btn btn-danger btn-sm"
-                        onClick={() => handleDelete(booking.recordID)}
+                        onClick={() => deleteAppointmentsForUser()}
                       >
                         Delete
                       </button>

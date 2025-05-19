@@ -330,21 +330,26 @@ app.get('/api/client/transactions', (req, res) => {
 
 
   
-  app.delete('/transactions/:id', (req, res) => {
-    const transactionId = req.params.id;
-  
-    const query = `DELETE FROM transactions WHERE recordID = ?`;
-  
-    db.query(query, [transactionId], (err, result) => {
-      if (err) {
-        return res.status(500).json({ error: err.message });
-      }
-      if (result.affectedRows === 0) {
-        return res.status(404).json({ message: 'Transaction not found' });
-      }
-      res.json({ message: 'Transaction deleted successfully' });
+app.delete('/transactions/delete-by-user', (req, res) => {
+    const { user_id } = req.body; // Or req.query if passing as URL param
+
+    if (!user_id) {
+        return res.status(400).json({ error: 'user_id is required' });
+    }
+
+    // Delete appointments for the user
+    const deleteQuery = 'DELETE FROM transactions WHERE user_id = ?';
+
+    db.query(deleteQuery, [user_id], (err, results) => {
+        if (err) {
+            console.error('Error deleting transactions:', err);
+            return res.status(500).json({ error: err.message });
+        }
+
+        // results.affectedRows gives number of rows deleted
+        res.json({ message: `${results.affectedRows} transactions(s) deleted for user_id ${user_id}` });
     });
-  });
+});
 
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);

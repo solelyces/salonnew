@@ -29,13 +29,14 @@ function LoginForm({ onLoginSuccess }) {
         password,
         role,
       });
+      console.log('Login response:', response);
 
       if (response.status === 200) {
-        // Simulate backend user object
-        const userData = {
-          username: username,  // Or: response.data.username
-          role: role,
-          user_id: 22          // This should ideally come from the backend
+         const { user } = response.data;
+         const userData = {
+          username: user.username,  // Or: response.data.username
+          role: user.role,
+          user_id: user.user_id      // This should ideally come from the backend
         };
 
         // ✅ Store user data in localStorage

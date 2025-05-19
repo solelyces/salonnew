@@ -43,7 +43,7 @@ const userDistributionChartInstance = useRef(null);
 
     const fetchTransactions = async () => {
     try {
-      const response = await axios.get('http://localhost:3000/api/transactions'); // Adjust the URL as necessary
+      const response = await axios.get('http://localhost:3000/api/admin/transactions'); // Adjust the URL as necessary
       console.log('Fetched Transactions:', response.data); // Log the response data
       setTransactions(response.data); // Assuming response.data is an array of transactions
     } catch (error) {

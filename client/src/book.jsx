@@ -59,7 +59,15 @@ const Book = ({ user_id }) => {
               throw new Error(`HTTP error! status: ${response.status}`);
           }
           const data = await response.json();
-          setPaymentOptions(data);
+              // Log the raw data to see property names
+    console.log('Fetched payment options:', data);
+
+    // If the ID property is different, map it:
+    const formattedData = data.map((option, index) => ({
+      ...option,
+      paymentinfo_id: index+1, // adapt as needed
+    }));
+    setPaymentOptions(formattedData);
       } catch (error) {
           console.error("Error fetching payment options:", error);
       }
@@ -98,19 +106,24 @@ const Book = ({ user_id }) => {
   };
 
 const confirmBooking = async () => {
-  const paymentId = parseInt(selectedPayment, 10);
-
-  // Validate paymentId
-  if (isNaN(paymentId) || selectedPayment === "") {
-    alert("Please select a valid payment method.");
+  if (!selectedPayment) {
+    alert("Please select a payment method.");
     return;
   }
-
+  const selectedOption = paymentOptions.find(
+    (option) => option.paymentdescription === selectedPayment
+  );
+  if (!selectedOption) {
+    alert("Invalid payment method selected.");
+    return;
+  }
+  const paymentId = selectedOption.paymentinfo_id;
+ console.log('Selected payment info ID:', paymentId);
   if (window.confirm("Are you sure you want to confirm your booking for the selected services?")) {
     console.log('Selected Payment ID:', paymentId);
     console.log('Preparing to submit:', {
       user_id: userId,
-      services_id: selectedServices.map(service => service.services_id), // Collect all service IDs
+      services_id: services.services_id, // Collect all service IDs
       paymentinfo_id: paymentId,
       appointment_date: appointmentDate,
       appointment_time: appointmentTime,
@@ -308,22 +321,20 @@ const confirmBooking = async () => {
             </div>
               <div className="form-group">
                 <label htmlFor="paymentMethod">Select Payment Method:</label>
-                <select
-                  id="paymentMethod"
-                  className="form-control"
-                  value={selectedPayment}
-                  onChange={(e) => {
-                    setSelectedPayment(e.target.value);
-                  }}
-                  required
-                >
-                  <option value="">Select a payment method</option> {/* Default option */}
-                  {paymentOptions.map((option) => (
-                    <option key={option.paymentinfo_id} value={option.paymentinfo_id}>
-                      {option.paymentdescription}
-                    </option>
-                  ))}
-                </select>
+                  <select
+                    id="paymentMethod"
+                    className="form-control"
+                    value={selectedPayment}
+                    onChange={(e) => setSelectedPayment(e.target.value)}
+                    required
+                  >
+                    <option value="">Select a payment method</option>
+                    {paymentOptions.map((option) => (
+                      <option key={option.paymentinfo_id} value={option.paymentdescription}>
+                        {option.paymentdescription}
+                      </option>
+                    ))}
+                  </select>
               </div>
 
 

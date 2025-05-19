@@ -152,7 +152,7 @@
 
 .service-name{
     flex: 1;
-    margin-left: 15%;
+    margin-left: 55%;
     padding: 10px;
 }
 
@@ -195,10 +195,8 @@
 }
 
 .total-payment {
-    text-align: center;
+    text-align: right;
     font-size: 1.2rem;
-    padding-left: 225px;
-    padding-top: 5px;
 }   
 
 .payment-method {
@@ -207,6 +205,7 @@
     align-items: center;
     margin-top: 20px;
     font-size: large;
+    margin-left: 25%;
 }
 
 
@@ -229,34 +228,65 @@
 
 .booking-date{
     margin-top: 30px;
+    margin-left: 25%;
+}
+
+.booking-time{
+    margin-left: 25%;
 }
 
 .booking-name {
     flex: 1;
-    margin-left: 25%;
+    margin-left: 55%;
     padding: 10px;
 }
-.status-label {
-    padding: 5px;
-    border-radius: 4px;
-    margin-top: 30px;
+.status-container {
     text-align: center;
+    margin-top: 30px; /* space from above content */
+}
+/* Status label styling */
+.status-label {
+    display: block;
+    margin: 30px auto 0 auto; /* vertical spacing & center horizontally */
+    padding: 5px 25px;
+    border-radius: 15px;
+    font-weight: bold;
+}
+.status-label.pending {
+  background-color: orange;
+  color: white;
+}
+.status-label.completed {
+  background-color: green;
+  color: white;
+}
+.status-label.declined {
+  background-color: red;
+  color: white;
 }
 
-.status-pending {
-    background-color: orange;
-}
-
-.status-confirmed {
-    background-color: green;
-}
-
-.status-declined {
-    background-color: red;
-}
-
-.status-actions {
+/* Container for action buttons centered */
+.action-buttons {
     display: flex;
-    gap: 5px;
+    justify-content: center; /* center horizontally */
+    gap: 5px; /* space between buttons */
+    margin-top: 20px;
 }
 
+.edit-btn {
+    background-color: #007bff; /* Bootstrap primary color */
+    color: white;
+    padding: 0 50px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.delete-btn {
+    background-color: #f44336; /* Bootstrap danger color */
+    color: white;
+    padding: 8px 50px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}

@@ -15,9 +15,11 @@ import profile from './assets/profile.jpg';
 const Profile = () => {
   const [activeContent, setActiveContent] = useState('profile');
   const [user, setUser] = useState(null);
-  const userId = 22;
   const [bookings, setBookings] = useState([]);
   const navigate = useNavigate();
+
+  console.log('User:', user);
+  console.log('Bookings:', bookings);
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
@@ -32,7 +34,8 @@ const Profile = () => {
   }, []);
 
   useEffect(() => {
-    fetch(`http://localhost:3000/api/transactions?user_id=${userId}`)
+    if (user && user.user_id) {
+    fetch(`http://localhost:3000/api/client/transactions?user_id=${user?.user_id}`)
       .then(res => res.json())
       .then(data => {
         console.log('Fetched data:', data);
@@ -47,7 +50,8 @@ const Profile = () => {
       .catch(error => {
         console.error('Error fetching transactions:', error);
       });
-  }, [userId]);
+    }
+  }, [user]);
 
   const showContent = (content) => {
     setActiveContent(content);
@@ -172,10 +176,6 @@ const Profile = () => {
                       <div className="service-item">
                         <span className="service-name">{booking.services_name}</span>
                         <span className="service-price">${Number(booking.total).toFixed(2)}</span>
-                        <div className="service-actions">
-                          <button className="btn-edit" onClick={() => handleEditService(booking.id, index)}>Edit</button>
-                          <button className="btn-delete" onClick={() => handleDeleteService(booking.id, index)}>Delete</button>
-                        </div>
                       </div>
                     </div>
                     <p className="total-payment">
@@ -187,28 +187,32 @@ const Profile = () => {
                     <h5 className="booking-date">Booking Date:</h5>
                     <div className="booking-item">
                       <span className="booking-name">{booking.Date}</span>
-                      <div className="booking-actions">
-                        <button className="btn-edit" onClick={() => handleEditBookingDate(booking.id, index)}>Edit</button>
-                        <button className="btn-delete" onClick={() => handleDeletebookingDate(booking.id, index)}>Delete</button>
-                      </div>
                     </div>
                     <h5 className="booking-time">Booking Time:</h5>
                     <div className="booking-item">
                       <span className="booking-name">{booking.Time}</span>
-                      <div className="booking-actions">
-                        <button className="btn-edit" onClick={() => handleEditBookingTime(booking.id, index)}>Edit</button>
-                        <button className="btn-delete" onClick={() => handleDeletebookingTime(booking.id, index)}>Delete</button>
-                      </div>
                     </div>
                     <div className="payment-method">
                       <span>Payment Method: <b>{booking.paymentdescription}</b></span>
-                      <div className="payment-actions">
-                        <button className="btn-edit" onClick={() => handleEditPaymentMethod(booking.id)}>Edit</button>
-                        <button className="btn-delete" onClick={() => handleDeletePaymentMethod(booking.id)}>Delete</button>
+                    </div>
+                    <div className="status-container">
+                      <div className={`status-label ${booking.status.toLowerCase()}`}>
+                        Status: {booking.status}
                       </div>
                     </div>
-                    <div className={`status-label ${booking.status.toLowerCase()}`}>
-                      Status: {booking.status}
+                    <div className="action-buttons" style={{ marginTop: '10px' }}>
+                      <button
+                        className="edit-btn"
+                        onClick={() => handleEdit(booking.recordID)}
+                      >
+                        Edit
+                      </button>
+                      <button
+                        className="delete-btn btn btn-danger btn-sm"
+                        onClick={() => handleDelete(booking.recordID)}
+                      >
+                        Delete
+                      </button>
                     </div>
                   </div>
                 ))}

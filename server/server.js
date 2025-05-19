@@ -58,61 +58,53 @@ app.post('/signup', async (req, res) => {
   });
 
 // Login endpoint
-// Login endpoint
-app.post('/login', (req, res) => {
-    const { username, password, role } = req.body;
-  
-    if (!username || !password || !role) {
-      return res.status(400).json({ message: 'Username, password and role are required' });
-    }
-    if (!['Admin', 'Client'].includes(role)) {
-      return res.status(400).json({ message: 'Invalid role' });
-    }
-  
-    // Find user by username
-    db.query('SELECT * FROM customer_info WHERE username = ? AND role = ?', [username, role], async (err, results) => {
+app.post('/login', async(req, res) => {
+  const { username, password, role } = req.body;
+
+  console.log('Received login request:', req.body);
+  console.log('Request Data - Username:', username, "Password:", password, "Role:", role);
+
+  if (!username || !password || !role) {
+    return res.status(400).json({ message: 'Username, password and role are required' });
+  }
+  if (!['Admin', 'Client'].includes(role)) {
+    return res.status(400).json({ message: 'Invalid role' });
+  }
+
+  db.query(
+    'SELECT user_id, username, role, firstname, lastname, email, password FROM customer_info WHERE username = ? AND role = ?',
+    [username, role],
+    async (err, results) => {
       if (err) return res.status(500).json({ message: 'Database error' });
       if (results.length === 0) {
         return res.status(401).json({ message: 'Invalid credentials' });
       }
-  
+      
       const user = results[0];
-      // Change this line to use the correct field name
-      const match = await bcrypt.compare(password, user.password); // Use user.password instead of user.password_hash
+
+      const match = await bcrypt.compare(password, user.password); // user.password is correct
       if (!match) {
         return res.status(401).json({ message: 'Invalid credentials' });
       }
-  
-      // Login successful
-      res.json({ message: `Login successful as ${role}` });
-    });
-  });
 
-  app.post('/login', (req, res) => {
-    const { username, password } = req.body;
-  
-    const query = `SELECT * FROM customer_info WHERE username = ? AND password = ?`;
-  
-    db.query(query, [username, password], (err, results) => {
-      if (err) {
-        return res.status(500).json({ error: err.message });
-      }
-      
-      if (results.length > 0) {
-        const user = results[0]; // Assuming this returns the user object
-        // Return relevant user info like ID, name, and any other fields you might need
-        return res.json({
-          userId: user.id,
-          firstName: user.firstname,
-          lastName: user.lastname,
+      // Send complete user info, including user_id, back to frontend
+      res.json({
+        message: `Login successful as ${role}`,
+        user: {
+          user_id: user.user_id,
           username: user.username,
-          email: user.email
-        });
-      } else {
-        return res.status(401).json({ message: 'Invalid username or password' });
-      }
-    });
-  });
+          role: user.role,
+          firstname: user.firstname,
+          lastname: user.lastname,
+          email: user.email,
+          
+        }
+      });
+    }
+  );
+});
+
+
 
 
   app.get('/api/users', (req, res) => {
@@ -260,7 +252,7 @@ app.put('/api/transactions/:id', (req, res) => {
 
 
 
-app.get('/api/transactions', async (req, res) => {
+app.get('/api/admin/transactions', async (req, res) => {
   // Create a new connection for this request
   const connection = mysql2.createConnection({
     host: 'localhost',
@@ -304,7 +296,7 @@ app.get('/api/transactions', async (req, res) => {
 });
 
 
-app.get('/api/transactions', (req, res) => {
+app.get('/api/client/transactions', (req, res) => {
   const userId = req.query.user_id;
 
   if (!userId) {
@@ -327,7 +319,7 @@ app.get('/api/transactions', (req, res) => {
       WHERE t.user_id = ?
   `;
 
-  connection.query(sql, [userId], (err, results) => {
+  db.query(sql, [userId], (err, results) => {
     if (err) {
       console.error('Query error:', err);
       return res.status(500).json({ error: 'Database query error' });

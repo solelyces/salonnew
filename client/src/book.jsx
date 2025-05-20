@@ -266,6 +266,7 @@ const confirmBooking = async () => {
             contentLabel="Service Details"
             className="Modal__Content"
             overlayClassName="Overlay"
+             ariaHideApp={false}
           >
             <button onClick={closeModal} className="Modal__CloseButton">&times;</button>
             <h2 className="Modal__Title">{selectedService.services_name}</h2>
@@ -285,6 +286,7 @@ const confirmBooking = async () => {
             contentLabel="Confirm Your Booking"
             className="Modal__ContentConfirmation"
             overlayClassName="Overlay"
+            ariaHideApp={false}
                       >
             <button onClick={closeConfirmationModal} className="Modal__CloseButton">&times;</button>
             <h2>Your Selected Services</h2>

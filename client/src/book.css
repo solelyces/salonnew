@@ -271,7 +271,8 @@
   border-radius: 50px; /* Rounded corners */
   cursor: pointer; /* Pointer cursor on hover */
   width: 30%; /* Set width to occupy half of the parent container */
-  margin-left: 35%;
+ margin: 0 auto; /* Center the button */
+  display: block; /* Center the button */
   color: black;
 
 }

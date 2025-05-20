@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Link, BrowserRouter as Router, useNavigate } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -11,12 +12,23 @@ import { FaRegStar } from "react-icons/fa";
 import { IoLocationOutline } from "react-icons/io5";
 import './profile.css';
 import profile from './assets/profile.jpg';
+import Modal from 'react-modal';
 
 const Profile = () => {
   const [activeContent, setActiveContent] = useState('profile');
   const [user, setUser] = useState(null);
   const [bookings, setBookings] = useState([]);
   const navigate = useNavigate();
+
+const [editModalOpen, setEditModalOpen] = useState(false);
+const [currentBooking, setCurrentBooking] = useState(null);
+const [editServices, setEditServices] = useState([]);
+const [editDate, setEditDate] = useState('');
+const [editTime, setEditTime] = useState('');
+const [editPayment, setEditPayment] = useState('');
+const [recentAppointments, setRecentAppointments] = useState([]);
+const [activeTab, setActiveTab] = useState('myAppointments');
+
 
   console.log('User:', user);
   console.log('Bookings:', bookings);
@@ -35,7 +47,7 @@ const Profile = () => {
 
   useEffect(() => {
     if (user && user.user_id) {
-    fetch(`http://localhost:3000/api/client/transactions?user_id=${user?.user_id}`)
+    fetch(`http://localhost:3000/api/client/transactions-pending?user_id=${user?.user_id}`)
       .then(res => res.json())
       .then(data => {
         console.log('Fetched data:', data);
@@ -57,29 +69,139 @@ const Profile = () => {
     setActiveContent(content);
   };
 
-function deleteAppointmentsForUser() {
-    if (confirm("Are you sure you want to delete all your appointments? This action cannot be undone.")) {
-        // Proceed with delete
-        fetch('http://localhost:3000/transactions/delete-by-user', {
-            method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ user_id: user.user_id })
-        })
-        .then(res => res.json())
-        .then(data => {
-            alert(data.message); // Notify user of success
-            setBookings([]);
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert("An error occurred while deleting your appointments.");
-        });
-    } else {
-        // User canceled
-        alert("Deletion canceled.");
-    }
+const servicesOptions = [
+  { services_id: 1, services_name: 'Hair Color' },
+  { services_id: 2, services_name: 'Hair Cut' },
+  { services_id: 3, services_name: 'Hair Rebond' },
+  { services_id: 4, services_name: 'Nail Gel' },
+  { services_id: 5, services_name: 'Nail Gel' },
+  { services_id: 6, services_name: 'Nail Gel' },
+];  
+
+const paymentOptions = [
+  { paymentinfo_id: 1, paymentdescription: 'Gcash' },
+  { paymentinfo_id: 2, paymentdescription: 'Paymaya' },
+  { paymentinfo_id: 3, paymentdescription: 'Master Card' },
+  { paymentinfo_id: 4, paymentdescription: 'Visa' },
+  { paymentinfo_id: 5, paymentdescription: 'Cash at Salon' },
+];
+
+const handleEdit = (booking) => {
+   if (editModalOpen) {
+    // Modal is already open, optionally do nothing or close first
+    return;
+  }
+  setCurrentBooking(booking);
+  
+  // Safely parse services_id: handle both array and string
+  let servicesIds = [];
+  if (Array.isArray(booking.services_id)) {
+    servicesIds = booking.services_id;
+  } else if (typeof booking.services_id === 'string') {
+    servicesIds = booking.services_id.trim() === '' ? [] : booking.services_id.split(',').map(id => parseInt(id));
+  } else {
+    servicesIds = [];
+  }
+  
+  // Now filter the services based on IDs
+  const selectedServices = servicesOptions.filter(s => servicesIds.includes(s.services_id));
+  setEditServices(selectedServices);
+  setEditDate(booking.Date);
+  setEditTime(booking.Time);
+  setEditPayment(booking.paymentinfo_id);
+  setEditModalOpen(true);
+};
+
+const handleSaveEdit = () => {
+  if (!currentBooking) return;
+  
+   const services_id = editServices.length > 0 ? editServices[0].services_id : null; 
+  fetch(`http://localhost:3000/api/update-transaction`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      recordID: currentBooking.recordID,
+      services_id: services_id, // array of IDs or comma-separated string
+      Date: editDate,
+      Time: editTime,
+      paymentinfo_id: editPayment,
+    }),
+  })
+    .then(res => res.json())
+    .then(data => {
+      alert('Booking updated successfully!');
+      fetchBookings(); // Refresh bookings
+      setEditModalOpen(false);
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      alert('Failed to update booking.');
+    });
+};
+
+const fetchBookings = () => {
+  if (user && user.user_id) {
+    fetch(`http://localhost:3000/api/client/transactions-pending?user_id=${user?.user_id}`)
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) {
+          setBookings(data);
+        } else if (data && Array.isArray(data.data)) {
+          setBookings(data.data);
+        } else {
+          setBookings([]);
+        }
+      })
+      .catch(error => {
+        console.error('Error fetching transactions:', error);
+      });
+  }
+};
+
+useEffect(() => {
+  fetchBookings();
+}, [user]);
+
+
+
+const fetchRecentConfirmed = () => {
+  if (user && user.user_id) {
+    fetch(`http://localhost:3000/api/client/transactions-confirmed?user_id=${user.user_id}`)
+      .then(res => res.json())
+      .then(data => {
+        setRecentAppointments(data); // data is already filtered for 'confirmed'
+      })
+      .catch(error => {
+        console.error('Error fetching recent appointments:', error);
+      });
+  }
+};
+
+
+function handleDelete(booking) {
+  if (confirm(`Are you sure you want to delete appointment record ${booking.recordID}?`)) {
+    fetch('http://localhost:3000/transactions/delete-by-record', {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        recordID: booking.recordID,
+        user_id: user.user_id
+      })
+    })
+    .then(res => res.json())
+    .then(data => {
+      alert(data.message);
+      fetchBookings(); // refresh list
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      alert("Failed to delete appointment.");
+    });
+  }
 }
 
   const handleLogout = () => {
@@ -140,15 +262,30 @@ function deleteAppointmentsForUser() {
             <nav className="menu-nav">
               <ul className="nav flex-column" role="tablist">
                 <li className="nav-item">
-                  <a className="nav-link active" data-bs-toggle="tab" href="#orders">
-                    <BsBoxSeam className='icons'/>
+                  <a
+                    className={`nav-link ${activeTab === 'myAppointments' ? 'active' : ''}`}
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => {
+                      showContent('profile'); // optional, if you still want to show other content
+                      setActiveTab('myAppointments');
+                    }}
+                  >
+                    <BsBoxSeam className='icons' />
                     <span>My Appointments</span>
                   </a>
                 </li>
                 <li className="nav-item">
-                  <a className="nav-link" data-bs-toggle="tab" href="#wishlist">
-                    <IoMdHeartEmpty className='icons'/>
-                    <span>Wishlist</span>
+                  <a
+                    className={`nav-link ${activeTab === 'recentAppointments' ? 'active' : ''}`}
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => {
+                      showContent('profile'); // optional
+                      fetchRecentConfirmed(); // fetch only confirmed
+                      setActiveTab('recentAppointments');
+                    }}
+                  >
+                    <IoMdHeartEmpty className='icons' />
+                    <span>Recent Appointments</span>
                   </a>
                 </li>
                 <li className="nav-item">
@@ -187,6 +324,10 @@ function deleteAppointmentsForUser() {
         </div>
 
         <div className="receipt-box-custom col-lg-8">
+          <h2 className='text-center'>Welcome to your Profile</h2>
+          <h3 className='title'>My Profile</h3>
+           {activeTab === 'myAppointments' && (
+              <>
           <h3 className='title'>My Appointments</h3>
           {Array.isArray(bookings) ? (
             bookings.length === 0 ? (
@@ -228,13 +369,13 @@ function deleteAppointmentsForUser() {
                     <div className="action-buttons" style={{ marginTop: '10px' }}>
                       <button
                         className="edit-btn"
-                        onClick={() => handleEdit(booking.recordID)}
+                        onClick={() => handleEdit(booking)}
                       >
                         Edit
                       </button>
                       <button
                         className="delete-btn btn btn-danger btn-sm"
-                        onClick={() => deleteAppointmentsForUser()}
+                        onClick={() => handleDelete(booking)}
                       >
                         Delete
                       </button>
@@ -245,6 +386,130 @@ function deleteAppointmentsForUser() {
             )
           ) : (
             <p>Loading bookings...</p>
+          )}
+          </>
+           )}
+
+          {editModalOpen && (
+            <Modal
+              isOpen={editModalOpen}
+              onRequestClose={() => setEditModalOpen(false)}
+              contentLabel="Edit Booking"
+              className="Modal__ContentProfile"
+              overlayClassName="OverlayProfile" 
+              ariaHideApp={false}
+            >
+              <button onClick={() => setEditModalOpen(false)} className="Modal__CloseButtonProfile">×</button>
+              <h2>Edit Booking</h2>
+              {/* Services (for simplicity, you might want a multi-select or checkboxes) */}
+              {/* Services (for simplicity, you might want a multi-select or checkboxes) */}
+                <div className="form-group">
+                  <label htmlFor="editServices">Services:</label>
+                  <select
+                    id="editServices"
+                    className="form-control"
+                    single
+                    value={editServices.map(s => s.services_id.toString())} // convert to strings for value matching
+                    onChange={(e) => {
+                      const selectedOptions = Array.from(e.target.selectedOptions);
+                      const selectedIds = selectedOptions.map(opt => parseInt(opt.value));
+                      const selectedSvcObjs = servicesOptions.filter(s => selectedIds.includes(s.services_id));
+                      setEditServices(selectedSvcObjs);
+                    }}
+                  >
+                    {servicesOptions.map((svc) => (
+                      <option key={svc.services_id} value={svc.services_id.toString()}>
+                        {svc.services_name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              {/* Date */}
+              <div className="form-group">
+                <label htmlFor="editDate">Date:</label>
+                <input
+                  type="date"
+                  id="editDate"
+                  className="form-control"
+                  value={editDate}
+                  onChange={(e) => setEditDate(e.target.value)}
+                />
+              </div>
+              {/* Time */}
+              <div className="form-group">
+                <label htmlFor="editTime">Time:</label>
+                <input
+                  type="time"
+                  id="editTime"
+                  className="form-control"
+                  value={editTime}
+                  onChange={(e) => setEditTime(e.target.value)}
+                />
+              </div>
+              {/* Payment Method */}
+              <div className="form-group">
+                <label htmlFor="editPayment">Payment Method:</label>
+                <select
+                  id="editPayment"
+                  className="form-control"
+                  value={editPayment}
+                  onChange={(e) => setEditPayment(e.target.value)}
+                >
+                  <option value="">Select Payment Method</option>
+                  {paymentOptions.map((option) => (
+                    <option key={option.paymentinfo_id} value={option.paymentinfo_id}>
+                      {option.paymentdescription}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              {/* Save Button */}
+              <button
+                className="saveButton btn btn-success mt-3"
+                onClick={handleSaveEdit}
+              >
+                Save
+              </button>
+            </Modal>
+          )}
+
+          {activeTab === 'recentAppointments' && (
+            <>
+            <h3 className='title'>Recent Appointments</h3>
+          {recentAppointments.length > 0 && (
+            <table className="table table-striped">
+              <thead>
+                <tr>
+                  <th>Record ID</th>
+                  <th>Username</th>
+                  <th>Service Name</th>
+                  <th>Payment Description</th>
+                  <th>Date</th>
+                  <th>Time</th>
+                  <th>Total</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {recentAppointments.map((appt) => (
+                  <tr key={appt.recordID}>
+                    <td>{appt.recordID}</td>
+                    <td>{user?.username || 'Guest'}</td>
+                    <td>{appt.services_name}</td>
+                    <td>{appt.paymentdescription}</td>
+                    <td>{appt.Date}</td>
+                    <td>{appt.Time}</td>
+                    <td>${Number(appt.total).toFixed(2)}</td>
+                    <td>{appt.status}</td>
+                    <td>
+                      {/* Optional: Add actions like Edit/Delete */}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+            </>
           )}
         </div>
       </div>

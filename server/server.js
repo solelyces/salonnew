@@ -295,8 +295,7 @@ app.get('/api/admin/transactions', async (req, res) => {
   }
 });
 
-
-app.get('/api/client/transactions', (req, res) => {
+app.get('/api/client/transactions-pending', (req, res) => {
   const userId = req.query.user_id;
 
   if (!userId) {
@@ -316,7 +315,7 @@ app.get('/api/client/transactions', (req, res) => {
       FROM transactions t
       JOIN services_info s ON t.services_id = s.services_id
       JOIN payment_info p ON t.paymentinfo_id = p.paymentinfo_id
-      WHERE t.user_id = ?
+      WHERE t.user_id = ? AND t.status = 'pending'
   `;
 
   db.query(sql, [userId], (err, results) => {
@@ -329,26 +328,93 @@ app.get('/api/client/transactions', (req, res) => {
 });
 
 
-  
-app.delete('/transactions/delete-by-user', (req, res) => {
-    const { user_id } = req.body; // Or req.query if passing as URL param
+app.get('/api/client/transactions-confirmed', (req, res) => {
+  const userId = req.query.user_id;
 
-    if (!user_id) {
-        return res.status(400).json({ error: 'user_id is required' });
+  if (!userId) {
+    return res.status(400).json({ error: 'Missing user_id parameter' });
+  }
+
+  const sql = `
+      SELECT 
+        t.recordID,
+        t.user_id,
+        s.services_name,
+        p.paymentdescription,
+        t.Date,
+        t.Time,
+        t.total,
+        t.status
+      FROM transactions t
+      JOIN services_info s ON t.services_id = s.services_id
+      JOIN payment_info p ON t.paymentinfo_id = p.paymentinfo_id
+      WHERE t.user_id = ? AND t.status = 'confirmed'
+  `;
+
+  db.query(sql, [userId], (err, results) => {
+    if (err) {
+      console.error('Query error:', err);
+      return res.status(500).json({ error: 'Database query error' });
+    }
+    res.json(results);
+  });
+});
+
+
+app.put('/api/update-transaction', (req, res) => {
+  const {
+    recordID,
+    services_id, // comma-separated string or array
+    Date,
+    Time,
+    paymentinfo_id
+  } = req.body; // Use req.body for PUT requests
+
+  if (!recordID || !services_id || !Date || !Time || !paymentinfo_id) {
+    return res.status(400).json({ message: 'Missing required fields' });
+  }
+
+  
+  const query = `
+    UPDATE transactions
+    SET services_id = ?, Date = ?, Time = ?, paymentinfo_id = ?
+    WHERE recordID = ?`;
+
+  db.query(
+    query,
+    [services_id, Date, Time, paymentinfo_id, recordID],
+    (err, result) => {
+      if (err) {
+        console.error('Database error:', err);
+        return res.status(500).json({ message: 'Update failed' });
+      }
+      res.json({ message: 'Transaction updated successfully' });
+    }
+  );
+});
+
+  
+app.delete('/transactions/delete-by-record', (req, res) => {
+  const { recordID, user_id } = req.body;
+
+  if (!recordID || !user_id) {
+    return res.status(400).json({ error: 'recordID and user_id are required' });
+  }
+
+  const deleteQuery = 'DELETE FROM transactions WHERE recordID = ? AND user_id = ?';
+
+  db.query(deleteQuery, [recordID, user_id], (err, results) => {
+    if (err) {
+      console.error('Error deleting transaction:', err);
+      return res.status(500).json({ error: err.message });
     }
 
-    // Delete appointments for the user
-    const deleteQuery = 'DELETE FROM transactions WHERE user_id = ?';
-
-    db.query(deleteQuery, [user_id], (err, results) => {
-        if (err) {
-            console.error('Error deleting transactions:', err);
-            return res.status(500).json({ error: err.message });
-        }
-
-        // results.affectedRows gives number of rows deleted
-        res.json({ message: `${results.affectedRows} transactions(s) deleted for user_id ${user_id}` });
-    });
+    if (results.affectedRows > 0) {
+      res.json({ message: `Appointment record ${recordID} deleted successfully.` });
+    } else {
+      res.json({ message: `No appointment found with recordID ${recordID} for this user.` });
+    }
+  });
 });
 
 app.listen(port, () => {

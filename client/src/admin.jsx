@@ -7,10 +7,10 @@ Chart.register(...registerables);
 const AdminDashboard = ({}) => {
  const [activeSection, setActiveSection] = useState('home');
   const [users, setUsers] = useState([]);
-  const [appointments, setAppointments] = useState([]);
   const [transactions, setTransactions] = useState([]);
   const [isEditing, setIsEditing] = useState(false);
-
+  const [pendingTransactions, setPendingTransactions] = useState([]);
+  const [paidTransactions, setPaidTransactions] = useState([]);
   
   // Combine the newUser  state into one declaration
   const [newUser , setNewUser ] = useState({
@@ -26,6 +26,10 @@ const AdminDashboard = ({}) => {
   const [message, setMessage] = useState('');
 const salesChartInstance = useRef(null);
 const userDistributionChartInstance = useRef(null);
+const [userCount, setUserCount] = useState(0);
+const [transactionCount, setTransactionCount] = useState(0);
+const [pendingCount, setPendingCount] = useState(0);
+const [hoveredCard, setHoveredCard] = useState(null);
 
 
   // Fetch users and transactions from the database
@@ -34,6 +38,7 @@ const userDistributionChartInstance = useRef(null);
       try {
         const response = await axios.get('http://localhost:3000/api/users');
         setUsers(response.data); // Assuming response.data is an array of users
+        setUserCount(response.data.length); // Set user count
       } catch (error) {
         console.error('Error fetching users:', error);
         setMessage('Failed to fetch users.');
@@ -41,17 +46,45 @@ const userDistributionChartInstance = useRef(null);
     };
     fetchUsers();
 
-    const fetchTransactions = async () => {
+       const fetchTransactions = async () => {
     try {
       const response = await axios.get('http://localhost:3000/api/admin/transactions'); // Adjust the URL as necessary
       console.log('Fetched Transactions:', response.data); // Log the response data
       setTransactions(response.data); // Assuming response.data is an array of transactions
+      setTransactionCount(response.data.length); // Set transaction count
     } catch (error) {
       console.error('Error fetching transactions:', error);
       setMessage('Failed to fetch transactions.');
     }
   };
   fetchTransactions();
+
+
+    const fetchPending = async () => {
+    try {
+      const response = await axios.get('http://localhost:3000/api/admin/transactions-pending'
+       );
+      
+      setPendingTransactions(response.data);
+      setPendingCount(response.data.length); // Set pending transaction count
+    } catch (error) {
+      console.error('Error fetching pending transactions:', error);
+    }
+  };
+
+  // Fetch paid transactions
+  const fetchPaid = async () => {
+    try {
+      const response = await axios.get('http://localhost:3000/api/admin/transactions-paid'
+       );
+      setPaidTransactions(response.data);
+    } catch (error) {
+      console.error('Error fetching paid transactions:', error);
+    }
+  };
+
+  fetchPending();
+  fetchPaid();
 
   const salesData = {
       labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
@@ -89,27 +122,16 @@ const userDistributionChartInstance = useRef(null);
     };
 
     const userDistributionData = {
-      labels: ['North America', 'Europe', 'Asia', 'Other'],
+      labels: ['Users', 'Transactions', 'Pending Payments'],
       datasets: [{
-        label: 'Users',
-        data: [550, 300, 250, 145],
-        backgroundColor: ['#4a90e2', '#50e3c2', '#f5a623', '#d0021b'],
+        label: 'Data Overview',
+        data: [userCount, transactionCount, pendingCount],
+        borderColor: ['#4a90e2', '#50e3c2', '#f5a623'],
         hoverOffset: 30
       }]
     };
 
-    const userDistributionConfig = {
-      type: 'doughnut',
-      data: userDistributionData,
-      options: {
-        responsive: true,
-        cutout: '60%',
-        plugins: {
-          legend: { position: 'bottom', labels: { color: '#35495e', font: { size: 14 } } },
-          tooltip: { enabled: true }
-        }
-      }
-    };
+ 
 
 
 
@@ -146,9 +168,34 @@ const userDistributionChartInstance = useRef(null);
 
   // Create new charts
   salesChartInstance.current = new Chart(salesChartCtx, salesConfig);
+ 
+  // Create user distribution chart with dynamic data
+  const dynamicUserDistributionData = {
+    labels: ['Users', 'Transactions', 'Pending Payments'],
+    datasets: [{
+      label: 'Data Overview',
+      data: [userCount, transactionCount, pendingCount],
+      backgroundColor: ['#4a90e2', '#50e3c2', '#f5a623'],
+      hoverOffset: 30,
+    }],
+  };
+
+  const userDistributionConfig = {
+    type: 'doughnut',
+    data: dynamicUserDistributionData,
+    options: {
+      responsive: true,
+      cutout: '60%',
+      plugins: {
+        legend: { position: 'bottom', labels: { color: '#35495e', font: { size: 14 } } },
+        tooltip: { enabled: true }
+      }
+    }
+  };
+
   userDistributionChartInstance.current = new Chart(userDistChartCtx, userDistributionConfig);
 
-  // Cleanup
+  // Cleanup function
   return () => {
     if (salesChartInstance.current) {
       salesChartInstance.current.destroy();
@@ -157,8 +204,15 @@ const userDistributionChartInstance = useRef(null);
       userDistributionChartInstance.current.destroy();
     }
   };
+}, [userCount, transactionCount, pendingCount]);
 
-}, []);
+const handleMouseEnter = (cardId) => {
+  setHoveredCard(cardId);
+};
+
+const handleMouseLeave = () => {
+  setHoveredCard(null);
+};
 
 // Inside your AdminDashboard component:
 
@@ -283,22 +337,20 @@ const handleDeclineTransaction = async (index) => {
 
 
 
-const handleConfirmTransaction = async (index) => {
-  const transaction = transactions[index];
+const handleConfirmTransaction = async (transaction) => {
   const recordID = transaction.recordID;
-  console.log('Attempting to confirm transaction with ID:', recordID);
+  console.log('Confirming transaction with ID:', recordID);
 
-  // Show a confirmation dialog
   const userConfirmed = window.confirm(`Are you sure you want to confirm transaction with ID: ${recordID}?`);
-  if (!userConfirmed) {
-    return; // User canceled
-  }
+  if (!userConfirmed) return;
 
   try {
-    await axios.put(`http://localhost:3000/api/transactions/${recordID}`, { status: 'Confirmed' });
-    const updatedTransactions = [...transactions];
-    updatedTransactions[index].status = 'Confirmed'; // Update local state
-    setTransactions(updatedTransactions);
+    await axios.put(`http://localhost:3000/api/transactions/${recordID}`, { status: 'Paid' });
+    // Update local state: remove from pending, add to paid, or refresh data
+    setPendingTransactions(prev => prev.filter(t => t.recordID !== recordID));
+    // Optionally, fetch updated lists
+    fetchPending();
+    fetchPaid();
     alert('Transaction confirmed successfully!');
   } catch (error) {
     console.error('Error confirming transaction:', error);
@@ -329,20 +381,69 @@ const handleConfirmTransaction = async (index) => {
       </header>
 
       <section className="stats-cards" aria-label="Overview statistics" style={styles.statsCards}>
-        <article className="card" tabIndex={0} aria-labelledby="users-title users-value" style={styles.card}>
+        <article
+          className="card"
+          tabIndex={0}
+          aria-labelledby="users-title users-value"
+          style={{
+            ...styles.card,
+            transform: hoveredCard === 'users' ? 'translateY(-8px)' : 'none',
+            transition: 'transform 0.3s ease',
+          }}
+          onMouseEnter={() => handleMouseEnter('users')}
+          onMouseLeave={handleMouseLeave}
+        >
           <h3 id="users-title" style={styles.cardTitle}>Users</h3>
           <div className="value" id="users-value" style={styles.cardValue}>{users.length}</div>
+          {hoveredCard === 'users' && (
+            <div style={styles.tooltip} onClick={() => setActiveSection('users')}>
+              <p>(Click to Manage Users)</p>
+            </div>
+          )}
         </article>
-        <article className="card" tabIndex={0} aria-labelledby="orders-title orders-value" style={styles.card}>
+        <article
+          className="card"
+          tabIndex={0}
+          aria-labelledby="orders-title orders-value"
+          style={{
+            ...styles.card,
+            transform: hoveredCard === 'transactions' ? 'translateY(-5px)' : 'none',
+            transition: 'transform 0.3s ease',
+          }}
+          onMouseEnter={() => handleMouseEnter('transactions')}
+          onMouseLeave={handleMouseLeave}
+        >
           <h3 id="orders-title" style={styles.cardTitle}>Transactions</h3>
           <div className="value" id="orders-value" style={styles.cardValue}>{transactions.length}</div>
+          {hoveredCard === 'transactions' && (
+            <div style={styles.tooltip} onClick={() => setActiveSection('appointments')}>
+              <p>(Click to Manage Transactions)</p>
+            </div>
+          )}
         </article>
-        <article className="card" tabIndex={0} aria-labelledby="revenue-title revenue-value" style={styles.card}>
-          <h3 id="revenue-title" style={styles.cardTitle}>Revenue</h3>
-          <div className="value" id="revenue-value" style={styles.cardValue}>$54,320</div>
+
+        <article
+          className="card"
+          tabIndex={0}
+          aria-labelledby="revenue-title revenue-value"
+          style={{
+            ...styles.card,
+            transform: hoveredCard === 'pendingTransactions' ? 'translateY(-5px)' : 'none',
+            transition: 'transform 0.3s ease',
+          }}
+          onMouseEnter={() => handleMouseEnter('pendingTransactions')}
+          onMouseLeave={handleMouseLeave}
+        >
+          <h3 id="revenue-title" style={styles.cardTitle}>Pending Transactions</h3>
+          <div className="value" id="revenue-value" style={styles.cardValue}>{pendingTransactions.length}</div>
+          {hoveredCard === 'pendingTransactions' && (
+            <div style={styles.tooltip} onClick={() => setActiveSection('appointments')}>
+              <p>(Click to Manage Transactions)</p>
+            </div>
+          )}
         </article>
         <article className="card" tabIndex={0} aria-labelledby="feedback-title feedback-value" style={styles.card}>
-          <h3 id="feedback-title" style={styles.cardTitle}>Feedbacks</h3>
+          <h3 id="feedback-title" style={styles.cardTitle}>Revenues</h3>
           <div className="value" id="feedback-value" style={styles.cardValue}>187</div>
         </article>
       </section>
@@ -353,7 +454,7 @@ const handleConfirmTransaction = async (index) => {
           <canvas id="salesChart" width="400" height="250" role="img" aria-label="Line chart showing sales over time"></canvas>
         </article>
         <article className="chart-card" aria-labelledby="user-distribution-title" style={styles.chartCard}>
-          <h3 id="user-distribution-title" style={styles.chartTitle}>User Distribution</h3>
+          <h3 id="user-distribution-title" style={styles.chartTitle}>System Overview</h3>
           <canvas id="userDistributionChart" width="400" height="250" role="img" aria-label="Pie chart showing user distribution"></canvas>
         </article>
       </section>
@@ -462,6 +563,80 @@ const handleConfirmTransaction = async (index) => {
           </div>
         );
       case 'appointments':
+  return (
+    <div>
+      {/* Pending Transactions Table */}
+      <div style={styles.CurrentUsers}>
+        <h4>Pending Transactions:</h4>
+        <table style={styles.table}>
+          <thead>
+            <tr>
+              <th style={styles.th}>Record ID</th>
+              <th style={styles.th}>Username</th>
+              <th style={styles.th}>Service Name</th>
+              <th style={styles.th}>Payment Description</th>
+              <th style={styles.th}>Date</th>
+              <th style={styles.th}>Time</th>
+              <th style={styles.th}>Total</th>
+              <th style={styles.th}>Status</th>
+              <th style={styles.th}>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {pendingTransactions.map((transaction, index) => (
+              <tr key={transaction.recordID}>
+                <td style={styles.td}>{transaction.recordID}</td>
+                <td style={styles.td}>{transaction.username}</td>
+                <td style={styles.td}>{transaction.services_name}</td>
+                <td style={styles.td}>{transaction.paymentdescription}</td>
+                <td style={styles.td}>{formatDate(transaction.Date)}</td>
+                <td style={styles.td}>{formatTime(transaction.Time)}</td>
+                <td style={styles.td}>{transaction.total}</td>
+                <td style={styles.td}>{transaction.status}</td>
+                <td style={styles.td}>
+                  <button onClick={() => handleConfirmTransaction(transaction)} style={styles.editButton}>Confirm</button>
+                  <button onClick={() => handleDeclineTransaction(index)} style={styles.deleteButton}>Decline</button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Paid Transactions Table */}
+      <div style={styles.CurrentUsers}>
+        <h4>Paid Transactions:</h4>
+        <table style={styles.table}>
+          <thead>
+            <tr>
+              <th style={styles.th}>Record ID</th>
+              <th style={styles.th}>Username</th>
+              <th style={styles.th}>Service Name</th>
+              <th style={styles.th}>Payment Description</th>
+              <th style={styles.th}>Date</th>
+              <th style={styles.th}>Time</th>
+              <th style={styles.th}>Total</th>
+              <th style={styles.th}>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {paidTransactions.map((transaction, index) => (
+              <tr key={transaction.recordID}>
+                <td style={styles.td}>{transaction.recordID}</td>
+                <td style={styles.td}>{transaction.username}</td>
+                <td style={styles.td}>{transaction.services_name}</td>
+                <td style={styles.td}>{transaction.paymentdescription}</td>
+                <td style={styles.td}>{formatDate(transaction.Date)}</td>
+                <td style={styles.td}>{formatTime(transaction.Time)}</td>
+                <td style={styles.td}>{transaction.total}</td>
+                <td style={styles.td}>{transaction.status}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
         return (
           <div>
 
@@ -506,6 +681,10 @@ const handleConfirmTransaction = async (index) => {
             </div>
           </div>
         );
+
+
+
+
       case 'settings':
         return (
           <div style={styles.settingsContainer}>
@@ -828,6 +1007,27 @@ const handleConfirmTransaction = async (index) => {
     cursor: 'pointer',
     fontSize: '16px',
     width: '100%',
+  },
+tooltip: {
+  position: 'absolute',
+  backgroundColor: 'rgba(255, 255, 255, 0.41)',
+  border: '1px solid #ccc',
+  borderRadius: '4px',
+  boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+  cursor: 'pointer',
+  zIndex: 1000,
+  width: '70%',
+  top: '65%', // Position it below the parent element
+  left: '25px',   // Align to the left of parent
+  marginTop: '20px', // space below the card
+  textAlign: 'center',
+  alignItems: 'center',
+  justifyContent: 'center',
+  fontSize: '15px',
+},
+   cardContainer: {
+    position: 'relative',
+    display: 'inline-block', // or flex, depending on layout
   },
   };
   

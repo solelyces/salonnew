@@ -168,7 +168,7 @@ useEffect(() => {
 
 const fetchRecentConfirmed = () => {
   if (user && user.user_id) {
-    fetch(`http://localhost:3000/api/client/transactions-confirmed?user_id=${user.user_id}`)
+    fetch(`http://localhost:3000/api/client/transactions-paid?user_id=${user.user_id}`)
       .then(res => res.json())
       .then(data => {
         setRecentAppointments(data); // data is already filtered for 'confirmed'

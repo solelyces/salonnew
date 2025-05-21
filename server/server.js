@@ -295,6 +295,88 @@ app.get('/api/admin/transactions', async (req, res) => {
   }
 });
 
+
+// Pending transactions
+app.get('/api/admin/transactions-pending', async (req, res) => {
+  const connection = mysql2.createConnection({ host: 'localhost', user: 'root', password: '', database: 'system' });
+  try {
+    await new Promise((resolve, reject) => {
+      connection.connect((err) => {
+        if (err) {
+          console.error('Connection error:', err);
+          reject(err);
+        } else {
+          resolve();
+        }
+      });
+    });
+
+    const [rows] = await connection.promise().query(`
+      SELECT 
+        t.recordID, 
+        c.username, 
+        s.services_name, 
+        p.paymentdescription, 
+        t.Date, 
+        t.Time, 
+        t.total, 
+        t.status
+      FROM transactions t
+      INNER JOIN customer_info c ON t.user_id = c.user_id
+      INNER JOIN services_info s ON t.services_id = s.services_id
+      INNER JOIN payment_info p ON t.paymentinfo_id = p.paymentinfo_id
+      WHERE t.status = 'pending'
+    `);
+    res.json(rows);
+  } catch (err) {
+    console.error('Error:', err);
+    res.status(500).json({ error: 'Internal Server Error' });
+  } finally {
+    connection.end();
+  }
+});
+
+// Paid transactions
+app.get('/api/admin/transactions-paid', async (req, res) => {
+  const connection = mysql2.createConnection({ host: 'localhost', user: 'root', password: '', database: 'system' });
+  try {
+    await new Promise((resolve, reject) => {
+      connection.connect((err) => {
+        if (err) {
+          console.error('Connection error:', err);
+          reject(err);
+        } else {
+          resolve();
+        }
+      });
+    });
+
+    const [rows] = await connection.promise().query(`
+      SELECT 
+        t.recordID, 
+        c.username, 
+        s.services_name, 
+        p.paymentdescription, 
+        t.Date, 
+        t.Time, 
+        t.total, 
+        t.status
+      FROM transactions t
+      INNER JOIN customer_info c ON t.user_id = c.user_id
+      INNER JOIN services_info s ON t.services_id = s.services_id
+      INNER JOIN payment_info p ON t.paymentinfo_id = p.paymentinfo_id
+      WHERE t.status = 'paid'
+    `);
+    res.json(rows);
+  } catch (err) {
+    console.error('Error:', err);
+    res.status(500).json({ error: 'Internal Server Error' });
+  } finally {
+    connection.end();
+  }
+});
+
+
 app.get('/api/client/transactions-pending', (req, res) => {
   const userId = req.query.user_id;
 
@@ -328,7 +410,7 @@ app.get('/api/client/transactions-pending', (req, res) => {
 });
 
 
-app.get('/api/client/transactions-confirmed', (req, res) => {
+app.get('/api/client/transactions-paid', (req, res) => {
   const userId = req.query.user_id;
 
   if (!userId) {
@@ -348,7 +430,7 @@ app.get('/api/client/transactions-confirmed', (req, res) => {
       FROM transactions t
       JOIN services_info s ON t.services_id = s.services_id
       JOIN payment_info p ON t.paymentinfo_id = p.paymentinfo_id
-      WHERE t.user_id = ? AND t.status = 'confirmed'
+      WHERE t.user_id = ? AND t.status = 'paid'
   `;
 
   db.query(sql, [userId], (err, results) => {
@@ -420,3 +502,5 @@ app.delete('/transactions/delete-by-record', (req, res) => {
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
 });
+
+

@@ -68,6 +68,23 @@
     }
 }
 
+@media (max-width: 768px) {
+    .gallery-container {
+        flex-direction: column; /* Stack items vertically on small screens */
+        align-items: center; /* Center items */
+    }
+    .service-card {
+        max-width: 90%; /* Full width on small screens */
+    }
+    #Body{/* Smaller font size for smaller screens */
+      margin-top: 200px;
+    }
+    .Modal__Content{
+      width: 100%; /* Full width on small screens */
+      margin-top: 200px;
+    }
+}
+
 
 
 

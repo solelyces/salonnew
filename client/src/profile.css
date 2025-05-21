@@ -81,15 +81,75 @@
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
+      .profile-menu {
+    width: 100%;
+    
+  }
+  .profile-menu .menu-nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .profile-menu .menu-nav .nav-item {
+    height: 50px;
+  }
+
+  .profile-menu .menu-nav .nav-link {
+    padding: 0.6rem;
+    font-size: 0.9rem;
+    text-align: center;
+    justify-items: center;   
+    align-items: center;
+
+  }
+
+  #logout {
+    margin-top: 0px;
+}
+
     .navbar-nav {
         text-align: center;
     }
 
     .inside{
-        margin-top: 500px;
+        margin-top: 220px;
+        display: block;
     }
     .user-info {
         padding: 0.5rem;
+    }
+    .receipt-box-custom {
+    width: 100%;
+  }
+
+  .nav-item span {
+    display: none; /* Center the nav items */
+  }
+ 
+  .inner{
+    margin-left: 0px;
+  }
+  table{
+    width: 100%;
+    display: block;
+    overflow-x: auto;
+  }
+}
+
+@media (max-width: 992px) {
+    table{
+        width: 100%;
+        display: block;
+        overflow-x: auto;
+    }
+}
+
+@media (max-width: 1200px) {
+    table{
+        width: 100%;
+        display: block;
+        overflow-x: auto;
     }
 }
 
@@ -108,7 +168,7 @@
     border: 1px solid #ccc; /* Border for each receipt */
     border-radius: 5px; /* Rounded corners for receipts */
     margin-bottom: 15px; /* Space between receipts */
-    padding: 40px; /* Padding inside each receipt */
+    padding: 20px; /* Padding inside each receipt */
     text-align: left; /* Left align text */
 }
 
@@ -157,9 +217,12 @@
 }
 
 .service-price {
-    width: 80px;
+    width: 120px;
     text-align: right;
     margin: 0 20px;
+    background-color: #f1f1f1;
+    border-radius: 10px;
+    padding: 10px;
 }
 
 .service-actions {
@@ -203,7 +266,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-top: 20px;
+    margin-top: 10px;
     font-size: large;
     margin-left: 25%;
 }
@@ -227,7 +290,7 @@
 }
 
 .booking-date{
-    margin-top: 30px;
+    margin-top: 15px;
     margin-left: 25%;
 }
 
@@ -352,4 +415,19 @@
     display: block; /* make it a block element */
 
     
+}
+
+
+.inside-total-payments{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 10px;
+    font-size: large;
+    padding-left: 30%;
+    background-color: #388e3c;
+    border-radius: 10px;
+    padding-right: 20px;
+    color: white;
+    height: 70px;
 }

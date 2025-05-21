@@ -443,6 +443,48 @@ app.get('/api/client/transactions-paid', (req, res) => {
 });
 
 
+app.get('/api/admin/revenue', async (req, res) => {
+  // Create a new connection for this request
+  const connection = mysql2.createConnection({
+    host: 'localhost',
+    user: 'root',
+    password: '',
+    database: 'system'
+  });
+
+  // Connect to the database
+  connection.connect(error => {
+    if (error) {
+      console.error('Error connecting to database:', error);
+      return res.status(500).json({ error: 'Database connection failed' });
+    }
+  });
+
+  try {
+    const [rows] = await connection.promise().query(`
+      SELECT SUM(total) AS totalRevenue FROM transactions WHERE status = 'paid'
+    `);
+    res.json({ totalRevenue: rows[0]?.totalRevenue || 0 });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal Server Error' });
+  } finally {
+    // Close the connection
+    connection.end();
+  }
+});
+
+// Example in your backend (Node.js/Express)
+app.get('/api/client/total-pending', (req, res) => {
+  const userId = req.query.user_id; // get user_id from query
+  // Run your SQL query here
+  // For example:
+  db.query('SELECT SUM(total) AS totalSum FROM transactions WHERE user_id = ? AND status = "pending"', [userId], (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ totalPending: results[0]?.totalSum || 0 });
+  });
+});
+
 app.put('/api/update-transaction', (req, res) => {
   const {
     recordID,

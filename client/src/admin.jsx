@@ -7,6 +7,8 @@ Chart.register(...registerables);
 const AdminDashboard = ({}) => {
  const [activeSection, setActiveSection] = useState('home');
   const [users, setUsers] = useState([]);
+  const storedUser = JSON.parse(localStorage.getItem('user'));
+  const username = storedUser?.username || 'Admin';
   const [transactions, setTransactions] = useState([]);
   const [isEditing, setIsEditing] = useState(false);
   const [pendingTransactions, setPendingTransactions] = useState([]);
@@ -30,7 +32,7 @@ const [userCount, setUserCount] = useState(0);
 const [transactionCount, setTransactionCount] = useState(0);
 const [pendingCount, setPendingCount] = useState(0);
 const [hoveredCard, setHoveredCard] = useState(null);
-
+const [totalRevenue, setTotalRevenue] = useState(0);
 
   // Fetch users and transactions from the database
   useEffect(() => {
@@ -86,40 +88,17 @@ const [hoveredCard, setHoveredCard] = useState(null);
   fetchPending();
   fetchPaid();
 
-  const salesData = {
-      labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
-      datasets: [{
-        label: 'Sales',
-        data: [1200, 1500, 1800, 1400, 1700, 2100, 2400, 2200, 2600, 3000, 3200, 3500],
-        fill: false,
-        borderColor: '#4a90e2',
-        backgroundColor: '#4a90e2',
-        tension: 0.3,
-        pointRadius: 5,
-        pointHoverRadius: 8,
-      }]
-    };
 
-    const salesConfig = {
-      type: 'line',
-      data: salesData,
-      options: {
-        responsive: true,
-        plugins: {
-          legend: { display: false },
-          tooltip: { enabled: true }
-        },
-        scales: {
-          y: {
-            beginAtZero: true,
-            ticks: { color: '#35495e' }
-          },
-          x: {
-            ticks: { color: '#35495e' }
-          }
-        }
-      }
-    };
+    const fetchRevenue = async () => {
+    try {
+      const response = await axios.get('http://localhost:3000/api/admin/revenue');
+      setTotalRevenue(response.data.totalRevenue);
+    } catch (error) {
+      console.error('Error fetching revenue:', error);
+    }
+  };
+
+  fetchRevenue();
 
     const userDistributionData = {
       labels: ['Users', 'Transactions', 'Pending Payments'],
@@ -135,39 +114,17 @@ const [hoveredCard, setHoveredCard] = useState(null);
 
 
 
-    // Recent activity sample data
-    const activities = [
-      { time: 'Just now', description: 'New user registration: johndoe' },
-      { time: '15 minutes ago', description: 'Order #4567 completed' },
-      { time: '1 hour ago', description: 'Product "Wireless Mouse" updated' },
-      { time: '2 hours ago', description: 'New feedback received from user "janedoe"' },
-      { time: 'Yesterday', description: 'Monthly revenue report generated' },
-      { time: '2 days ago', description: 'User "techguy" password changed' },
-    ];
 
-    // Populate recent activity list dynamically
-    const activityList = document.getElementById('activityList');
-    activities.forEach(act => {
-      const div = document.createElement('div');
-      div.className = 'activity-item';
-      div.textContent = `${act.time} - ${act.description}`;
-      activityList.appendChild(div);
-    });
 
   
 
-    if (salesChartInstance.current) {
-    salesChartInstance.current.destroy();
-  }
+  
   if (userDistributionChartInstance.current) {
     userDistributionChartInstance.current.destroy();
   }
 
-  const salesChartCtx = document.getElementById('salesChart').getContext('2d');
   const userDistChartCtx = document.getElementById('userDistributionChart').getContext('2d');
 
-  // Create new charts
-  salesChartInstance.current = new Chart(salesChartCtx, salesConfig);
  
   // Create user distribution chart with dynamic data
   const dynamicUserDistributionData = {
@@ -363,7 +320,7 @@ const handleConfirmTransaction = async (transaction) => {
     if (confirmLogout) {
       // Simulate logging out (e.g., clear user data)
       setUsers([]);
-      setAppointments([]);
+      setTransactions([]);
       alert('Logged out successfully!');
       
       // Redirect to the homepage (or login page)
@@ -377,94 +334,106 @@ const handleConfirmTransaction = async (transaction) => {
         return (
           <main className="main-content" role="main" aria-label="Dashboard main content" style={styles.mainContent}>
       <header className="header" style={styles.header}>
-        <h1 style={styles.headerTitle}>Welcome, Admin!</h1>
+        <h1 style={styles.headerTitle}>Welcome, {username}!</h1>
       </header>
 
-      <section className="stats-cards" aria-label="Overview statistics" style={styles.statsCards}>
-        <article
-          className="card"
-          tabIndex={0}
-          aria-labelledby="users-title users-value"
-          style={{
-            ...styles.card,
-            transform: hoveredCard === 'users' ? 'translateY(-8px)' : 'none',
-            transition: 'transform 0.3s ease',
-          }}
-          onMouseEnter={() => handleMouseEnter('users')}
-          onMouseLeave={handleMouseLeave}
-        >
-          <h3 id="users-title" style={styles.cardTitle}>Users</h3>
-          <div className="value" id="users-value" style={styles.cardValue}>{users.length}</div>
-          {hoveredCard === 'users' && (
-            <div style={styles.tooltip} onClick={() => setActiveSection('users')}>
-              <p>(Click to Manage Users)</p>
-            </div>
-          )}
-        </article>
-        <article
-          className="card"
-          tabIndex={0}
-          aria-labelledby="orders-title orders-value"
-          style={{
-            ...styles.card,
-            transform: hoveredCard === 'transactions' ? 'translateY(-5px)' : 'none',
-            transition: 'transform 0.3s ease',
-          }}
-          onMouseEnter={() => handleMouseEnter('transactions')}
-          onMouseLeave={handleMouseLeave}
-        >
-          <h3 id="orders-title" style={styles.cardTitle}>Transactions</h3>
-          <div className="value" id="orders-value" style={styles.cardValue}>{transactions.length}</div>
-          {hoveredCard === 'transactions' && (
-            <div style={styles.tooltip} onClick={() => setActiveSection('appointments')}>
-              <p>(Click to Manage Transactions)</p>
-            </div>
-          )}
-        </article>
+<section className="stats-cards" aria-label="Overview statistics" style={styles.statsCards}>
+  {/* Users Card */}
+  <article
+    className="card"
+    tabIndex={0}
+    aria-labelledby="users-title users-value"
+    style={{
+      ...styles.card,
+      transform: hoveredCard === 'users' ? 'translateY(-8px)' : 'none',
+      transition: 'transform 0.3s ease',
+      cursor: 'pointer', // Make cursor indicate clickability
+    }}
+    onMouseEnter={() => handleMouseEnter('users')}
+    onMouseLeave={handleMouseLeave}
+    onClick={() => setActiveSection('users')} // Make entire card clickable
+  >
+    <h3 id="users-title" style={styles.cardTitle}>Users</h3>
+    <div className="value" id="users-value" style={styles.cardValue}>{users.length}</div>
+    {/* Remove tooltip */}
+  </article>
 
-        <article
-          className="card"
-          tabIndex={0}
-          aria-labelledby="revenue-title revenue-value"
-          style={{
-            ...styles.card,
-            transform: hoveredCard === 'pendingTransactions' ? 'translateY(-5px)' : 'none',
-            transition: 'transform 0.3s ease',
-          }}
-          onMouseEnter={() => handleMouseEnter('pendingTransactions')}
-          onMouseLeave={handleMouseLeave}
-        >
-          <h3 id="revenue-title" style={styles.cardTitle}>Pending Transactions</h3>
-          <div className="value" id="revenue-value" style={styles.cardValue}>{pendingTransactions.length}</div>
-          {hoveredCard === 'pendingTransactions' && (
-            <div style={styles.tooltip} onClick={() => setActiveSection('appointments')}>
-              <p>(Click to Manage Transactions)</p>
-            </div>
-          )}
-        </article>
-        <article className="card" tabIndex={0} aria-labelledby="feedback-title feedback-value" style={styles.card}>
-          <h3 id="feedback-title" style={styles.cardTitle}>Revenues</h3>
-          <div className="value" id="feedback-value" style={styles.cardValue}>187</div>
-        </article>
-      </section>
+  {/* Transactions Card */}
+  <article
+    className="card"
+    tabIndex={0}
+    aria-labelledby="orders-title orders-value"
+    style={{
+      ...styles.card,
+      transform: hoveredCard === 'transactions' ? 'translateY(-5px)' : 'none',
+      transition: 'transform 0.3s ease',
+      cursor: 'pointer',
+    }}
+    onMouseEnter={() => handleMouseEnter('transactions')}
+    onMouseLeave={handleMouseLeave}
+    onClick={() => setActiveSection('appointments')}
+  >
+    <h3 id="orders-title" style={styles.cardTitle}>Transactions</h3>
+    <div className="value" id="orders-value" style={styles.cardValue}>{transactions.length}</div>
+  </article>
 
-      <section className="charts-container" aria-label="Data visualization charts" style={styles.chartsContainer}>
-        <article className="chart-card" aria-labelledby="sales-chart-title" style={styles.chartCard}>
-          <h3 id="sales-chart-title" style={styles.chartTitle}>Sales Over Time</h3>
-          <canvas id="salesChart" width="400" height="250" role="img" aria-label="Line chart showing sales over time"></canvas>
-        </article>
-        <article className="chart-card" aria-labelledby="user-distribution-title" style={styles.chartCard}>
-          <h3 id="user-distribution-title" style={styles.chartTitle}>System Overview</h3>
-          <canvas id="userDistributionChart" width="400" height="250" role="img" aria-label="Pie chart showing user distribution"></canvas>
-        </article>
-      </section>
+  {/* Pending Transactions Card */}
+  <article
+    className="card"
+    tabIndex={0}
+    aria-labelledby="revenue-title revenue-value"
+    style={{
+      ...styles.card,
+      transform: hoveredCard === 'pendingTransactions' ? 'translateY(-5px)' : 'none',
+      transition: 'transform 0.3s ease',
+      cursor: 'pointer',
+    }}
+    onMouseEnter={() => handleMouseEnter('pendingTransactions')}
+    onMouseLeave={handleMouseLeave}
+    onClick={() => setActiveSection('appointments')}
+  >
+    <h3 id="revenue-title" style={styles.cardTitle}>Pending Transactions</h3>
+    <div className="value" id="revenue-value" style={styles.cardValue}>{pendingTransactions.length}</div>
+  </article>
 
-      <section className="activity-section" aria-label="Recent activity" style={styles.activitySection}>
-        <h3 style={styles.activityTitle}>Recent Activity</h3>
-        <div className="activity-list" id="activityList" tabIndex={0} aria-live="polite" style={styles.activityList}>
-          {/* Activity items will be populated by useEffect */}
-        </div>
-      </section>
+  {/* Revenues Card (no hover effect or tooltip needed) */}
+  <article className="card" tabIndex={0} aria-labelledby="feedback-title feedback-value" style={styles.card}>
+    <h3 id="feedback-title" style={styles.cardTitle}>Revenues</h3>
+    <div className="value" id="feedback-value" style={styles.cardValue}>Php {totalRevenue}</div>
+  </article>
+</section>
+
+<section className="charts-container" aria-label="Data visualization charts" style={styles.chartsContainer}>
+  {/* System Overview Chart */}
+  <article className="chart-card" aria-labelledby="user-distribution-title" style={styles.chartCard}>
+    <h3 id="user-distribution-title" style={styles.chartTitle}>System Overview</h3>
+    <canvas id="userDistributionChart" width="200" height="50" role="img" aria-label="Pie chart showing user distribution"></canvas>
+  </article>
+  {/* Key Statistics */}
+  <article className="chart-card" aria-labelledby="key-statistics-title" style={styles.chartCard}>
+    <h3 id="key-statistics-title" style={styles.chartTitle}>Key Statistics</h3>
+    <div style={{ display: 'flex', justifyContent: 'space-around', flexWrap: 'wrap' }}>
+      <div style={styles.statBox}>
+        <h4 style={styles.statTitle}>Users</h4>
+        <p style={styles.statValue}>{users.length}</p>
+      </div>
+      <div style={styles.statBox}>
+        <h4 style={styles.statTitle}>Transactions</h4>
+        <p style={styles.statValue}>{transactions.length}</p>
+      </div>
+      <div style={styles.statBox}>
+        <h4 style={styles.statTitle}>Pending Transactions</h4>
+        <p style={styles.statValue}>{pendingTransactions.length}</p>
+      </div>
+      <div style={styles.statBox}>
+        <h4 style={styles.statTitle}>Revenues</h4>
+        <p style={styles.statValue}>Php {totalRevenue}</p>
+      </div>
+    </div>
+  </article>
+</section>
+
+
     </main>
 
         );
@@ -1029,6 +998,27 @@ tooltip: {
     position: 'relative',
     display: 'inline-block', // or flex, depending on layout
   },
+  statBox: {
+  display: 'block',
+  backgroundColor: '#f4f4f4',
+  padding: '20px',
+  borderRadius: '8px',
+  width: '200px',
+  textAlign: 'center',
+  margin: '10px',
+  boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+},
+statTitle: {
+  marginBottom: '10px',
+  fontSize: '1.2rem',
+  fontWeight: '600',
+  color: '#333',
+},
+statValue: {
+  fontSize: '1.5rem',
+  fontWeight: '700',
+  color: '#4a90e2',
+},
   };
   
     

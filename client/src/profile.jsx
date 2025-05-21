@@ -9,7 +9,6 @@ import { BsBoxSeam } from "react-icons/bs";
 import { IoMdHeartEmpty } from "react-icons/io";
 import { BsWallet2 } from "react-icons/bs";
 import { FaRegStar } from "react-icons/fa";
-import { IoLocationOutline } from "react-icons/io5";
 import './profile.css';
 import profile from './assets/profile.jpg';
 import Modal from 'react-modal';
@@ -28,6 +27,7 @@ const [editTime, setEditTime] = useState('');
 const [editPayment, setEditPayment] = useState('');
 const [recentAppointments, setRecentAppointments] = useState([]);
 const [activeTab, setActiveTab] = useState('myAppointments');
+const [totalPending, setTotalPending] = useState(0);
 
 
   console.log('User:', user);
@@ -74,8 +74,8 @@ const servicesOptions = [
   { services_id: 2, services_name: 'Hair Cut' },
   { services_id: 3, services_name: 'Hair Rebond' },
   { services_id: 4, services_name: 'Nail Gel' },
-  { services_id: 5, services_name: 'Nail Gel' },
-  { services_id: 6, services_name: 'Nail Gel' },
+  { services_id: 5, services_name: 'Nail Polish' },
+  { services_id: 6, services_name: 'Nail Color' },
 ];  
 
 const paymentOptions = [
@@ -85,6 +85,23 @@ const paymentOptions = [
   { paymentinfo_id: 4, paymentdescription: 'Visa' },
   { paymentinfo_id: 5, paymentdescription: 'Cash at Salon' },
 ];
+
+const formatDate = (isoString) => {
+  const date = new Date(isoString);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+const formatTime = (timeString) => {
+  const [hours, minutes] = timeString.split(':');
+  const date = new Date();
+  date.setHours(parseInt(hours, 10));
+  date.setMinutes(parseInt(minutes, 10));
+  const options = { hour: 'numeric', minute: 'numeric', hour12: true };
+  return date.toLocaleString('en-US', options).toLowerCase();
+};
 
 const handleEdit = (booking) => {
    if (editModalOpen) {
@@ -161,7 +178,18 @@ const fetchBookings = () => {
 };
 
 useEffect(() => {
+  // existing fetch bookings code...
   fetchBookings();
+
+  // fetch total pending payments
+  if (user && user.user_id) {
+    fetch(`http://localhost:3000/api/client/total-pending?user_id=${user.user_id}`)
+      .then(res => res.json())
+      .then(data => {
+        setTotalPending(data.totalPending || 0);
+      })
+      .catch(err => console.error('Error fetching total pending:', err));
+  }
 }, [user]);
 
 
@@ -246,7 +274,7 @@ function handleDelete(booking) {
 
       <div className="inside">
         <div className="inner col-lg-3 col-md-4 col-sm-12 col-12">
-          <div className="profile-menu collapse d-lg-block" id="profileMenu">
+          <div className="profile-menu" id="profileMenu">
             <div className="user-info" data-aos="fade-right">
               <div className="user-avatar">
                 <img src={profile} alt="Profile" loading="lazy" />
@@ -260,7 +288,7 @@ function handleDelete(booking) {
             </div>
 
             <nav className="menu-nav">
-              <ul className="nav flex-column" role="tablist">
+              <ul className="nav" role="tablist">
                 <li className="nav-item">
                   <a
                     className={`nav-link ${activeTab === 'myAppointments' ? 'active' : ''}`}
@@ -300,12 +328,6 @@ function handleDelete(booking) {
                     <span>My Reviews</span>
                   </a>
                 </li>
-                <li className="nav-item">
-                  <a className="nav-link" data-bs-toggle="tab" href="#addresses">
-                    <IoLocationOutline className='me-2 icons'/>
-                    <span>Addresses</span>
-                  </a>
-                </li>
                 <li className="nav-item border-bottom pb-4">
                   <a className="nav-link " data-bs-toggle="tab" href="#settings">
                     <IoSettingsOutline className='icons'/>
@@ -341,22 +363,16 @@ function handleDelete(booking) {
                     <div className="services-list">
                       <div className="service-item">
                         <span className="service-name">{booking.services_name}</span>
-                        <span className="service-price">${Number(booking.total).toFixed(2)}</span>
+                        <span className="service-price">Php {Number(booking.total).toFixed(2)}</span>
                       </div>
                     </div>
-                    <p className="total-payment">
-                      <strong>
-                        Total Payable: $
-                        {isNaN(Number(booking.total)) ? '0.00' : Number(booking.total).toFixed(2)}
-                      </strong>
-                    </p>
                     <h5 className="booking-date">Booking Date:</h5>
                     <div className="booking-item">
-                      <span className="booking-name">{booking.Date}</span>
+                      <span className="booking-name">{formatDate(booking.Date)}</span>
                     </div>
                     <h5 className="booking-time">Booking Time:</h5>
                     <div className="booking-item">
-                      <span className="booking-name">{booking.Time}</span>
+                      <span className="booking-name">{formatTime(booking.Time)}</span>
                     </div>
                     <div className="payment-method">
                       <span>Payment Method: <b>{booking.paymentdescription}</b></span>
@@ -387,6 +403,13 @@ function handleDelete(booking) {
           ) : (
             <p>Loading bookings...</p>
           )}
+           <div className="total-payments-section mt-4 p-3 border rounded bg-light">
+            <div className='inside-total-payments'>
+            <h5><BsWallet2 className='icons' size={20} />Total Pending Payments:</h5>
+            <p className="fs-4">Php {Number(totalPending).toFixed(2)}</p>
+            </div>
+            
+          </div>
           </>
            )}
 
@@ -401,8 +424,6 @@ function handleDelete(booking) {
             >
               <button onClick={() => setEditModalOpen(false)} className="Modal__CloseButtonProfile">×</button>
               <h2>Edit Booking</h2>
-              {/* Services (for simplicity, you might want a multi-select or checkboxes) */}
-              {/* Services (for simplicity, you might want a multi-select or checkboxes) */}
                 <div className="form-group">
                   <label htmlFor="editServices">Services:</label>
                   <select

@@ -431,3 +431,13 @@
     color: white;
     height: 70px;
 }
+
+.settings-form input{
+    padding: 10px;
+    width: 50%;
+    margin: 0 auto; /* center the input */
+}
+
+.form-check-input{
+    width: 100px;
+}

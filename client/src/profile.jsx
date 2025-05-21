@@ -87,6 +87,48 @@ const paymentOptions = [
   { paymentinfo_id: 5, paymentdescription: 'Cash at Salon' },
 ];
 
+const [profileData, setProfileData] = useState({
+  username: '',
+  firstName: '',
+  lastName: '',
+  displayName: '',
+  email: '',
+  phone: '',
+  theme: 'light', // or 'dark'
+  language: 'en', // default language
+  notifications: true,
+  privacy: 'public' // or 'private'
+});
+
+
+const [isEditingProfile, setIsEditingProfile] = useState(false);
+const [editProfileForm, setEditProfileForm] = useState({
+  firstname: '',
+  lastname: '',
+  email: '',
+  username: ''
+});
+
+// Populate form fields when entering edit mode
+const handleEditProfile = () => {
+  setEditProfileForm({
+    firstname: profileData.firstName,
+    lastname: profileData.lastName,
+    email: profileData.email,
+    username: user?.username || ''
+  });
+  setIsEditingProfile(true);
+};
+
+// Handle form input change
+const handleProfileInputChange = (field, value) => {
+  setEditProfileForm(prev => ({ ...prev, [field]: value }));
+};
+
+// Handle saving the profile info
+
+
+
 const formatDate = (isoString) => {
   const date = new Date(isoString);
   const year = date.getFullYear();
@@ -224,6 +266,67 @@ function handleDelete(booking) {
     });
   }
 }
+const handleProfileSave = () => {
+  fetch(`http://localhost:3000/api/users/${user.user_id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      username: editProfileForm.username,
+      firstname: editProfileForm.firstname,
+      lastname: editProfileForm.lastname,
+      email: editProfileForm.email,
+    }),
+  })
+  .then(res => {
+    if (res.ok) {
+      // If response status is 204 No Content, no body
+      if (res.status === 204) {
+        alert('Profile updated successfully!');
+        // Update local user state here if needed
+        setUser(prev => ({ ...prev, ...editProfileForm }));
+        localStorage.setItem('user', JSON.stringify({ ...prev, ...editProfileForm }));
+        return; // No body to parse
+      }
+      // For other successful responses, response might be plain text
+      return res.text();
+    } else {
+      // Handle error responses
+      return res.text().then(text => {
+        throw new Error(text || 'Update failed');
+      });
+    }
+  })
+  .then(data => {
+    if (data) {
+      // If backend returns a message like "User updated successfully"
+      alert(data);
+    }
+  })
+  .catch(err => {
+    console.error('Error:', err);
+    alert('Error updating profile: ' + err.message);
+  });
+};
+
+useEffect(() => {
+  if (user && user.user_id) {
+    fetch(`http://localhost:3000/api/users/${user.user_id}`)
+      .then(res => res.json())
+      .then(data => {
+        // Populate profileData with the fetched data
+        setProfileData(prev => ({
+          ...prev,
+          firstName: data.firstname || '',
+          lastName: data.lastname || '',
+          email: data.email || '',
+          username: data.username || '',
+        }));
+      })
+      .catch(err => {
+        console.error('Error fetching user profile:', err);
+      });
+  }
+}, [user]);
 
   const handleLogout = () => {
     const confirmLogout = window.confirm("Are you sure you want to log out?");
@@ -322,7 +425,13 @@ function handleDelete(booking) {
                   </a>
                 </li>
                 <li className="nav-item border-bottom pb-4">
-                  <a className="nav-link " data-bs-toggle="tab" href="#settings">
+                  <a
+                    className={`nav-link ${activeTab === 'settings' ? 'active' : ''}`}
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => {
+                      setActiveTab('settings');
+                    }}
+                  >
                     <IoSettingsOutline className='icons'/>
                     <span>Account Settings</span>
                   </a>
@@ -339,7 +448,6 @@ function handleDelete(booking) {
         </div>
 
         <div className="receipt-box-custom col-lg-8">
-          <h2 className='text-center'>Welcome to your Profile</h2>
           <h3 className='title'>My Profile</h3>
            {activeTab === 'myAppointments' && (
               <>
@@ -526,7 +634,120 @@ function handleDelete(booking) {
           )}
             </>
           )}
+{activeTab === 'settings' && (
+  <div className="settings-form mt-4 p-3 border rounded bg-light">
+    <h3>Account Settings</h3>
+    {!isEditingProfile ? (
+      <div>
+        <p>
+          <strong>Username:</strong> {user?.username}
+        </p>
+            <p><strong>First Name:</strong> {profileData.firstName}</p>
+            <p><strong>Last Name:</strong> {profileData.lastName}</p>
+            <p><strong>Email:</strong> {profileData.email}</p>
+        <button className="btn btn-primary" onClick={handleEditProfile}>
+          Edit Profile Information
+        </button>
+      </div>
+    ) : (
+      <div>
+        <div className="mb-3">
+          <label htmlFor="firstname" className="form-label">First Name</label>
+            <input
+              type="text"
+              id="firstname"
+              className="form-control"
+              value={editProfileForm.firstname}
+              onChange={(e) => handleProfileInputChange('firstname', e.target.value)}
+            />
         </div>
+        <div className="mb-3">
+          <label htmlFor="lastname" className="form-label">Last Name</label>
+          <input
+            type="text"
+            id="lastname"
+            className="form-control"
+            value={editProfileForm.lastname}
+            onChange={(e) => handleProfileInputChange('lastname', e.target.value)}
+          />
+        </div>
+        <div className="mb-3">
+          <label htmlFor="username" className="form-label">Username</label>
+          <input
+            type="text"
+            id="username"
+            className="form-control"
+            value={editProfileForm.username}
+            onChange={(e) => handleProfileInputChange('username', e.target.value)}
+          />
+        </div>
+        <div className="mb-3">
+          <label htmlFor="email" className="form-label">Email</label>
+          <input
+            type="email"
+            id="email"
+            className="form-control"
+            value={editProfileForm.email}
+            onChange={(e) => handleProfileInputChange('email', e.target.value)}
+          />
+        </div>
+          <button
+            type="button"
+            className="btn btn-success"
+            onClick={(e) => { e.preventDefault(); handleProfileSave(); }}
+          >
+            Save Changes
+          </button>
+        <button className="btn btn-secondary ms-2" onClick={() => setIsEditingProfile(false)}>Cancel</button>
+        
+      </div>
+    )}
+     {/* Display Preferences */}
+              <div className="mb-3 mt-4">
+                <label htmlFor="theme" className="form-label">Theme</label>
+                <select
+                  id="theme"
+                  className="form-select"
+                  value={profileData.theme}
+                  onChange={(e) => setProfileData({ ...profileData, theme: e.target.value })}
+                >
+                  <option value="light">Light</option>
+                  <option value="dark">Dark</option>
+                </select>
+              </div>
+              
+              <div className="mb-3">
+                <label htmlFor="language" className="form-label">Language</label>
+                <select
+                  id="language"
+                  className="form-select"
+                  value={profileData.language}
+                  onChange={(e) => setProfileData({ ...profileData, language: e.target.value })}
+                >
+                  <option value="en">English</option>
+                  <option value="es">Spanish</option>
+                  <option value="fr">French</option>
+                  {/* Add more languages as needed */}
+                </select>
+              </div>
+              
+              {/* Notification toggle */}
+              <div className="form-check form-switch mb-3">
+                <input
+                  className="form-check-input"
+                  type="checkbox"
+                  id="notifications"
+                  checked={profileData.notifications}
+                  onChange={(e) => setProfileData({ ...profileData, notifications: e.target.checked })}
+                />
+                <label className="form-check-label" htmlFor="notifications">
+                  Enable Notifications
+                </label>
+              </div>
+  </div>
+)}
+        </div>
+
       </div>
 
       <div className="container">

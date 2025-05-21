@@ -39,8 +39,11 @@ function LoginForm({ onLoginSuccess }) {
           user_id: user.user_id      // This should ideally come from the backend
         };
 
-        // ✅ Store user data in localStorage
-        localStorage.setItem("user", JSON.stringify(userData));
+  if (role === 'Admin') {
+    localStorage.setItem('adminUser', JSON.stringify(userData));
+  } else {
+    localStorage.setItem('user', JSON.stringify(userData));
+  }
 
         console.log('User data stored in localStorage:', userData);
         setMessage('Login successful!');

@@ -7,7 +7,7 @@ Chart.register(...registerables);
 const AdminDashboard = ({}) => {
  const [activeSection, setActiveSection] = useState('home');
   const [users, setUsers] = useState([]);
-  const storedUser = JSON.parse(localStorage.getItem('user'));
+  const storedUser = JSON.parse(localStorage.getItem('adminUser'));
   const username = storedUser?.username || 'Admin';
   const [transactions, setTransactions] = useState([]);
   const [isEditing, setIsEditing] = useState(false);
@@ -193,18 +193,24 @@ const formatTime = (timeString) => {
 const handleAddUser = async () => {
   try {
     if (isEditing) {
-      // For updating
-      const updatedUser = { ...newUser }; // include user_id
-      console.log('Updating user:', updatedUser); // Debug
+      // Prepare payload for update
+      const updatedUser = { ...newUser };
+      
+      // Remove password if empty or in edit mode (not changing password)
+      delete updatedUser.password; // do not include password in update payload
+      
       const response = await axios.put(`http://localhost:3000/api/users/${updatedUser.user_id}`, updatedUser);
+      
       if (response.status === 200) {
         const updatedUsers = [...users];
-        updatedUsers[editingUserIndex] = updatedUser;
+        updatedUsers[editingUserIndex] = { ...users[editingUserIndex], ...updatedUser };
         setUsers(updatedUsers);
         alert('User updated successfully!');
+      } else {
+        alert('Failed to update user.');
       }
     } else {
-      // For adding
+      // For creating new user, include password
       const response = await axios.post('http://localhost:3000/signup', newUser);
       if (response.status === 201) {
         setUsers([...users, newUser]);
@@ -216,7 +222,7 @@ const handleAddUser = async () => {
     alert('Failed to update user.');
   } finally {
     // Reset form
-    setNewUser({ firstname: '', lastname: '', username: '', email: '', password: '' });
+    setNewUser({ firstname: '', lastname: '', username: '', email: '', password: '', role: 'Client' });
     setEditingUserIndex(null);
     setIsEditing(false);
   }
@@ -230,7 +236,6 @@ const handleEditUser = (index) => {
     lastname: userToEdit.lastname,
     username: userToEdit.username,
     email: userToEdit.email,
-    password: '', // optional
   });
   console.log('Preparing to update, newUser:', newUser);
   setEditingUserIndex(index);
@@ -509,13 +514,6 @@ const handleConfirmTransaction = async (transaction) => {
                 value={newUser.email}
                 style={styles.inputManageUsers}
                 onChange={e => setNewUser({ ...newUser, email: e.target.value })}
-              />
-              <input
-                type="password"
-                placeholder="Password"
-                value={newUser.password}
-                style={styles.inputManageUsers}
-                onChange={e => setNewUser({ ...newUser, password: e.target.value })}
               />
               <select
                 value={newUser.role}

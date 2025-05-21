@@ -137,22 +137,25 @@ app.get('/api/users/:id', (req, res) => {
   });
 });
 
-  app.put('/api/users/:id', (req, res) => {
-    const user_id = req.params.id;
-    const { firstname, lastname, email, username, password } = req.body;
+app.put('/api/users/:id', (req, res) => {
+  const user_id = req.params.id;
+  const { firstname, lastname, email, username, password } = req.body;
 
-    const query = 'UPDATE customer_info SET firstname = ?, lastname = ?, email = ?, username = ?, password = ? WHERE user_id = ?';
-    db.query(query, [firstname, lastname, email, username, password, user_id], (err, result) => {
-      if (err) {
-        console.error(err);
-        return res.status(500).send(err);
-      }
-      if (result.affectedRows === 0) {
-        return res.status(404).send('User not found');
-      }
-      res.send('User updated successfully');
-    });
+  let query = 'UPDATE customer_info SET firstname = ?, lastname = ?, email = ?, username = ?';
+  const params = [firstname, lastname, email, username];
+
+  if (password) {
+    query += ', password = ?';
+    params.push(password); // You should hash the password before storing
+  }
+
+  query += ' WHERE user_id = ?';
+  params.push(user_id);
+
+  db.query(query, params, (err, result) => {
+    // ...
   });
+});
 
 app.delete('/api/users/:id', (req, res) => {
   console.log('Received delete request for user:', req.params.id);

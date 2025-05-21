@@ -491,22 +491,23 @@ app.put('/api/update-transaction', (req, res) => {
     services_id, // comma-separated string or array
     Date,
     Time,
+    total,
     paymentinfo_id
   } = req.body; // Use req.body for PUT requests
 
-  if (!recordID || !services_id || !Date || !Time || !paymentinfo_id) {
+  if (!recordID || !services_id || !Date || !Time || !total || !paymentinfo_id) {
     return res.status(400).json({ message: 'Missing required fields' });
   }
 
   
   const query = `
     UPDATE transactions
-    SET services_id = ?, Date = ?, Time = ?, paymentinfo_id = ?
+    SET services_id = ?, Date = ?, Time = ?, total = ?, paymentinfo_id = ?
     WHERE recordID = ?`;
 
   db.query(
     query,
-    [services_id, Date, Time, paymentinfo_id, recordID],
+    [services_id, Date, Time,total, paymentinfo_id, recordID],
     (err, result) => {
       if (err) {
         console.error('Database error:', err);

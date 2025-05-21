@@ -28,6 +28,7 @@ const [editPayment, setEditPayment] = useState('');
 const [recentAppointments, setRecentAppointments] = useState([]);
 const [activeTab, setActiveTab] = useState('myAppointments');
 const [totalPending, setTotalPending] = useState(0);
+const [editTotal, setEditTotal] = useState(0);
 
 
   console.log('User:', user);
@@ -70,16 +71,16 @@ const [totalPending, setTotalPending] = useState(0);
   };
 
 const servicesOptions = [
-  { services_id: 1, services_name: 'Hair Color' },
-  { services_id: 2, services_name: 'Hair Cut' },
-  { services_id: 3, services_name: 'Hair Rebond' },
-  { services_id: 4, services_name: 'Nail Gel' },
-  { services_id: 5, services_name: 'Nail Polish' },
-  { services_id: 6, services_name: 'Nail Color' },
+  { services_id: 1, services_name: 'Hair Color' , services_price: 200 },
+  { services_id: 2, services_name: 'Hair Cut' , services_price: 80},
+  { services_id: 3, services_name: 'Hair Rebond' , services_price: 1500 },
+  { services_id: 4, services_name: 'Nail Gel' , services_price: 200},
+  { services_id: 5, services_name: 'Nail Polish' , services_price: 150},
+  { services_id: 6, services_name: 'Nail Color' , services_price: 200},
 ];  
 
 const paymentOptions = [
-  { paymentinfo_id: 1, paymentdescription: 'Gcash' },
+  { paymentinfo_id: 1, paymentdescription: 'Gcash'},
   { paymentinfo_id: 2, paymentdescription: 'Paymaya' },
   { paymentinfo_id: 3, paymentdescription: 'Master Card' },
   { paymentinfo_id: 4, paymentdescription: 'Visa' },
@@ -104,27 +105,18 @@ const formatTime = (timeString) => {
 };
 
 const handleEdit = (booking) => {
-   if (editModalOpen) {
-    // Modal is already open, optionally do nothing or close first
-    return;
-  }
+  if (editModalOpen) return;
   setCurrentBooking(booking);
-  
-  // Safely parse services_id: handle both array and string
-  let servicesIds = [];
-  if (Array.isArray(booking.services_id)) {
-    servicesIds = booking.services_id;
-  } else if (typeof booking.services_id === 'string') {
-    servicesIds = booking.services_id.trim() === '' ? [] : booking.services_id.split(',').map(id => parseInt(id));
-  } else {
-    servicesIds = [];
-  }
-  
-  // Now filter the services based on IDs
-  const selectedServices = servicesOptions.filter(s => servicesIds.includes(s.services_id));
-  setEditServices(selectedServices);
-  setEditDate(booking.Date);
-  setEditTime(booking.Time);
+
+  // Since services_id is an int, filter directly
+  const selectedServices = servicesOptions.find(
+    s => s.services_id === booking.services_id
+  );
+  setEditServices(selectedServices ? [selectedServices] : []);
+    // Calculate initial total
+  setEditTotal(Number(booking.total));
+  setEditDate(formatDate(booking.Date));
+  setEditTime(formatTime(booking.Time));
   setEditPayment(booking.paymentinfo_id);
   setEditModalOpen(true);
 };
@@ -132,7 +124,7 @@ const handleEdit = (booking) => {
 const handleSaveEdit = () => {
   if (!currentBooking) return;
   
-   const services_id = editServices.length > 0 ? editServices[0].services_id : null; 
+   const services_id = editServices.map(s => s.services_id); 
   fetch(`http://localhost:3000/api/update-transaction`, {
     method: 'PUT',
     headers: {
@@ -140,9 +132,10 @@ const handleSaveEdit = () => {
     },
     body: JSON.stringify({
       recordID: currentBooking.recordID,
-      services_id: services_id, // array of IDs or comma-separated string
+      services_id: editServices.map(s => s.services_id), // array of IDs or comma-separated string
       Date: editDate,
       Time: editTime,
+      total: editTotal,
       paymentinfo_id: editPayment,
     }),
   })
@@ -424,27 +417,28 @@ function handleDelete(booking) {
             >
               <button onClick={() => setEditModalOpen(false)} className="Modal__CloseButtonProfile">×</button>
               <h2>Edit Booking</h2>
-                <div className="form-group">
-                  <label htmlFor="editServices">Services:</label>
-                  <select
-                    id="editServices"
-                    className="form-control"
-                    single
-                    value={editServices.map(s => s.services_id.toString())} // convert to strings for value matching
-                    onChange={(e) => {
-                      const selectedOptions = Array.from(e.target.selectedOptions);
-                      const selectedIds = selectedOptions.map(opt => parseInt(opt.value));
-                      const selectedSvcObjs = servicesOptions.filter(s => selectedIds.includes(s.services_id));
-                      setEditServices(selectedSvcObjs);
-                    }}
-                  >
-                    {servicesOptions.map((svc) => (
-                      <option key={svc.services_id} value={svc.services_id.toString()}>
-                        {svc.services_name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                <select
+                  id="editServices"
+                  className="form-control"
+                  value={editServices.length > 0 ? editServices[0].services_id : ''}
+                  onChange={(e) => {
+                    const selectedId = parseInt(e.target.value);
+                    const selectedSvc = servicesOptions.find(s => s.services_id === selectedId);
+                    if (selectedSvc) {
+                      setEditServices([selectedSvc]);
+                      setEditTotal(selectedSvc.services_price);
+                    }
+                  }}
+                >
+                  {servicesOptions.map((svc) => (
+                    <option key={svc.services_id} value={svc.services_id}>
+                      {svc.services_name}
+                    </option>
+                  ))}
+                </select>
+                  <div>
+                    <strong>Price: </strong> Php {editTotal.toFixed(2)}
+                  </div>
               {/* Date */}
               <div className="form-group">
                 <label htmlFor="editDate">Date:</label>

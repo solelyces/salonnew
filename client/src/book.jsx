@@ -134,7 +134,7 @@ const Book = ({ user_id }) => {
       return;
     }
     const paymentId = selectedOption.paymentinfo_id;
-  console.log('Selected payment info ID:', paymentId);
+    console.log('Selected payment info ID:', paymentId);
     if (window.confirm("Are you sure you want to confirm your booking for the selected services?")) {
       console.log('Selected Payment ID:', paymentId);
       console.log('Preparing to submit:', {

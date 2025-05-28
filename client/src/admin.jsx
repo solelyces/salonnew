@@ -343,149 +343,149 @@ const AdminDashboard = ({}) => {
     }
   };
 
+
+
   const renderContent = () => {
     switch (activeSection) {
       case 'home':
         return (
           <main className="main-content" role="main" aria-label="Dashboard main content" style={styles.mainContent}>
-      <header className="header" style={styles.header}>
-        <h1 style={styles.headerTitle}>Welcome, {username}!</h1>
-      </header>
+            <header className="header" style={styles.header}>
+              <h1 style={styles.headerTitle}>Welcome, {username}!</h1>
+            </header>
 
-      <section className="stats-cards" aria-label="Overview statistics" style={styles.statsCards}>
-        {/* Users Card */}
-        <article
-          className="card"
-          tabIndex={0}
-          aria-labelledby="users-title users-value"
-          style={{
-            ...styles.card,
-            transform: hoveredCard === 'users' ? 'translateY(-8px)' : 'none',
-            transition: 'transform 0.3s ease',
-            cursor: 'pointer', 
-          }}
-          onMouseEnter={() => handleMouseEnter('users')}
-          onMouseLeave={handleMouseLeave}
-          onClick={() => setActiveSection('users')} 
-        >
-          <h3 id="users-title" style={styles.cardTitle}>Users</h3>
-          <div className="value" id="users-value" style={styles.cardValue}>{users.length}</div>
-          
-        </article>
+            <section className="stats-cards" aria-label="Overview statistics" style={styles.statsCards}>
+              {/* Users Card */}
+              <article
+                className="card"
+                tabIndex={0}
+                aria-labelledby="users-title users-value"
+                style={{
+                  ...styles.card,
+                  transform: hoveredCard === 'users' ? 'translateY(-8px)' : 'none',
+                  transition: 'transform 0.3s ease',
+                  cursor: 'pointer', 
+                }}
+                onMouseEnter={() => handleMouseEnter('users')}
+                onMouseLeave={handleMouseLeave}
+                onClick={() => setActiveSection('users')} 
+              >
+                <h3 id="users-title" style={styles.cardTitle}>Users</h3>
+                <div className="value" id="users-value" style={styles.cardValue}>{users.length}</div>
+                
+              </article>
 
-        {/* Transactions Card */}
-        <article
-          className="card"
-          tabIndex={0}
-          aria-labelledby="orders-title orders-value"
-          style={{
-            ...styles.card,
-            transform: hoveredCard === 'transactions' ? 'translateY(-5px)' : 'none',
-            transition: 'transform 0.3s ease',
-            cursor: 'pointer',
-          }}
-          onMouseEnter={() => handleMouseEnter('transactions')}
-          onMouseLeave={handleMouseLeave}
-          onClick={() => setActiveSection('appointments')}
-        >
-          <h3 id="orders-title" style={styles.cardTitle}>Transactions</h3>
-          <div className="value" id="orders-value" style={styles.cardValue}>{transactions.length}</div>
-        </article>
+              {/* Transactions Card */}
+              <article
+                className="card"
+                tabIndex={0}
+                aria-labelledby="orders-title orders-value"
+                style={{
+                  ...styles.card,
+                  transform: hoveredCard === 'transactions' ? 'translateY(-5px)' : 'none',
+                  transition: 'transform 0.3s ease',
+                  cursor: 'pointer',
+                }}
+                onMouseEnter={() => handleMouseEnter('transactions')}
+                onMouseLeave={handleMouseLeave}
+                onClick={() => setActiveSection('appointments')}
+              >
+                <h3 id="orders-title" style={styles.cardTitle}>Transactions</h3>
+                <div className="value" id="orders-value" style={styles.cardValue}>{transactions.length}</div>
+              </article>
 
-        {/* Pending Transactions Card */}
-        <article
-          className="card"
-          tabIndex={0}
-          aria-labelledby="revenue-title revenue-value"
-          style={{
-            ...styles.card,
-            transform: hoveredCard === 'pendingTransactions' ? 'translateY(-5px)' : 'none',
-            transition: 'transform 0.3s ease',
-            cursor: 'pointer',
-          }}
-          onMouseEnter={() => handleMouseEnter('pendingTransactions')}
-          onMouseLeave={handleMouseLeave}
-          onClick={() => setActiveSection('appointments')}
-        >
-          <h3 id="revenue-title" style={styles.cardTitle}>Pending Transactions</h3>
-          <div className="value" id="revenue-value" style={styles.cardValue}>{pendingTransactions.length}</div>
-        </article>
+              {/* Pending Transactions Card */}
+              <article
+                className="card"
+                tabIndex={0}
+                aria-labelledby="revenue-title revenue-value"
+                style={{
+                  ...styles.card,
+                  transform: hoveredCard === 'pendingTransactions' ? 'translateY(-5px)' : 'none',
+                  transition: 'transform 0.3s ease',
+                  cursor: 'pointer',
+                }}
+                onMouseEnter={() => handleMouseEnter('pendingTransactions')}
+                onMouseLeave={handleMouseLeave}
+                onClick={() => setActiveSection('appointments')}
+              >
+                <h3 id="revenue-title" style={styles.cardTitle}>Pending Transactions</h3>
+                <div className="value" id="revenue-value" style={styles.cardValue}>{pendingTransactions.length}</div>
+              </article>
 
-        {/* Revenues Card (no hover effect or tooltip needed) */}
-        <article className="card" tabIndex={0} aria-labelledby="feedback-title feedback-value" style={styles.card}>
-          <h3 id="feedback-title" style={styles.cardTitle}>Revenues</h3>
-          <div className="value" id="feedback-value" style={styles.cardValue}>Php {totalRevenue}</div>
-        </article>
-      </section>
+              {/* Revenues Card (no hover effect or tooltip needed) */}
+              <article className="card" tabIndex={0} aria-labelledby="feedback-title feedback-value" style={styles.card}>
+                <h3 id="feedback-title" style={styles.cardTitle}>Revenues</h3>
+                <div className="value" id="feedback-value" style={styles.cardValue}>Php {totalRevenue}</div>
+              </article>
+            </section>
 
-      <section className="charts-container" aria-label="Data visualization charts" style={styles.chartsContainer}>
-        {/* System Overview Chart */}
-        <article className="chart-card" aria-labelledby="user-distribution-title" style={styles.chartCard}>
-          <h3 id="user-distribution-title" style={styles.chartTitle}>System Overview</h3>
-          <canvas id="userDistributionChart" width="200" height="50" role="img" aria-label="Pie chart showing user distribution"></canvas>
-        </article>
-        {/* Key Statistics */}
-        <article className="chart-card" aria-labelledby="key-statistics-title" style={styles.chartCard}>
-          <h3 id="key-statistics-title" style={styles.chartTitle}>Key Statistics</h3>
-          <div style={{ display: 'flex', justifyContent: 'space-around', flexWrap: 'wrap' }}>
-            <div style={styles.statBox}>
-              <h4 style={styles.statTitle}>Users</h4>
-              <p style={styles.statValue}>{users.length}</p>
-            </div>
-            <div style={styles.statBox}>
-              <h4 style={styles.statTitle}>Transactions</h4>
-              <p style={styles.statValue}>{transactions.length}</p>
-            </div>
-            <div style={styles.statBox}>
-              <h4 style={styles.statTitle}>Pending Transactions</h4>
-              <p style={styles.statValue}>{pendingTransactions.length}</p>
-            </div>
-            <div style={styles.statBox}>
-              <h4 style={styles.statTitle}>Revenues</h4>
-              <p style={styles.statValue}>Php {totalRevenue}</p>
-            </div>
-          </div>
-        </article>
-      </section>
-
-
-    </main>
-
+            <section className="charts-container" aria-label="Data visualization charts" style={styles.chartsContainer}>
+              {/* System Overview Chart */}
+              <article className="chart-card" aria-labelledby="user-distribution-title" style={styles.chartCard}>
+                <h3 id="user-distribution-title" style={styles.chartTitle}>System Overview</h3>
+                <canvas id="userDistributionChart" width="200" height="50" role="img" aria-label="Pie chart showing user distribution"></canvas>
+              </article>
+              {/* Key Statistics */}
+              <article className="chart-card" aria-labelledby="key-statistics-title" style={styles.chartCard}>
+                <h3 id="key-statistics-title" style={styles.chartTitle}>Key Statistics</h3>
+                <div style={{ display: 'flex', justifyContent: 'space-around', flexWrap: 'wrap' }}>
+                  <div style={styles.statBox}>
+                    <h4 style={styles.statTitle}>Users</h4>
+                    <p style={styles.statValue}>{users.length}</p>
+                  </div>
+                  <div style={styles.statBox}>
+                    <h4 style={styles.statTitle}>Transactions</h4>
+                    <p style={styles.statValue}>{transactions.length}</p>
+                  </div>
+                  <div style={styles.statBox}>
+                    <h4 style={styles.statTitle}>Pending Transactions</h4>
+                    <p style={styles.statValue}>{pendingTransactions.length}</p>
+                  </div>
+                  <div style={styles.statBox}>
+                    <h4 style={styles.statTitle}>Revenues</h4>
+                    <p style={styles.statValue}>Php {totalRevenue}</p>
+                  </div>
+                </div>
+              </article>
+            </section>
+          </main>
         );
+
       case 'users':
         return (
           <div>
             <div style={styles.CurrentUsers}>
-            <h4>Current Users:</h4>
-            <table style={styles.table}>
-              <thead>
-                <tr>
-                  <th style={styles.th}>User Id</th>
-                  <th style={styles.th}>First Name</th>
-                  <th style={styles.th}>Last Name</th>
-                  <th style={styles.th}>Username</th>
-                  <th style={styles.th}>Email</th>
-                  <th style={styles.th}>Role</th>
-                  <th style={styles.th}>Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {users.map((user, index) => (
-                  <tr key={index}>
-                    <td style={styles.td}>{user.user_id}</td>
-                    <td style={styles.td}>{user.firstname}</td>
-                    <td style={styles.td}>{user.lastname}</td>
-                    <td style={styles.td}>{user.username}</td>
-                    <td style={styles.td}>{user.email}</td>
-                    <td style={styles.td}>{user.role}</td>
-                    <td style={styles.td}>
-                      <button onClick={() => handleEditUser (index)} style={styles.editButton}>Edit</button>
-                      <button onClick={() => handleDeleteUser (user.user_id)} style={styles.deleteButton}>Delete</button>
-                    </td>
+              <h4>Current Users:</h4>
+              <table style={styles.table}>
+                <thead>
+                  <tr>
+                    <th style={styles.th}>User Id</th>
+                    <th style={styles.th}>First Name</th>
+                    <th style={styles.th}>Last Name</th>
+                    <th style={styles.th}>Username</th>
+                    <th style={styles.th}>Email</th>
+                    <th style={styles.th}>Role</th>
+                    <th style={styles.th}>Action</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {users.map((user, index) => (
+                    <tr key={index}>
+                      <td style={styles.td}>{user.user_id}</td>
+                      <td style={styles.td}>{user.firstname}</td>
+                      <td style={styles.td}>{user.lastname}</td>
+                      <td style={styles.td}>{user.username}</td>
+                      <td style={styles.td}>{user.email}</td>
+                      <td style={styles.td}>{user.role}</td>
+                      <td style={styles.td}>
+                        <button onClick={() => handleEditUser (index)} style={styles.editButton}>Edit</button>
+                        <button onClick={() => handleDeleteUser (user.user_id)} style={styles.deleteButton}>Delete</button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
 
             <div style={styles.ManageUsers}>
@@ -533,126 +533,17 @@ const AdminDashboard = ({}) => {
                 <option>Client</option>
               </select>
               <button onClick={handleAddUser } style={styles.buttonAddUser}>
-              {isEditing ? 'Save Changes' : 'Save User'}
-            </button>
+                {isEditing ? 'Save Changes' : 'Save User'}
+              </button>
             </div>
-
           </div>
         );
       case 'appointments':
-  return (
-    <div>
-      {/* Pending Transactions Table */}
-      <div style={styles.CurrentUsers}>
-        <h4>Pending Transactions:</h4>
-        <table style={styles.table}>
-          <thead>
-            <tr>
-              <th style={styles.th}>Record ID</th>
-              <th style={styles.th}>Username</th>
-              <th style={styles.th}>Service Name</th>
-              <th style={styles.th}>Payment Description</th>
-              <th style={styles.th}>Date</th>
-              <th style={styles.th}>Time</th>
-              <th style={styles.th}>Total</th>
-              <th style={styles.th}>Status</th>
-              <th style={styles.th}>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {pendingTransactions.map((transaction, index) => (
-              <tr key={transaction.recordID}>
-                <td style={styles.td}>{transaction.recordID}</td>
-                <td style={styles.td}>{transaction.username}</td>
-                <td style={styles.td}>{transaction.services_name}</td>
-                <td style={styles.td}>{transaction.paymentdescription}</td>
-                <td style={styles.td}>{formatDate(transaction.Date)}</td>
-                <td style={styles.td}>{formatTime(transaction.Time)}</td>
-                <td style={styles.td}>{transaction.total}</td>
-                <td style={styles.td}>{transaction.status}</td>
-                <td style={styles.td}>
-                  <button onClick={() => handleConfirmTransaction(transaction)} style={styles.editButton}>Confirm</button>
-                  <button onClick={() => handleDeclineTransaction(transaction.recordID)} style={styles.deleteButton}>Decline</button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Paid Transactions Table */}
-      <div style={styles.CurrentUsers}>
-        <h4>Paid Transactions:</h4>
-        <table style={styles.table}>
-          <thead>
-            <tr>
-              <th style={styles.th}>Record ID</th>
-              <th style={styles.th}>Username</th>
-              <th style={styles.th}>Service Name</th>
-              <th style={styles.th}>Payment Description</th>
-              <th style={styles.th}>Date</th>
-              <th style={styles.th}>Time</th>
-              <th style={styles.th}>Total</th>
-              <th style={styles.th}>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {paidTransactions.map((transaction, index) => (
-              <tr key={transaction.recordID}>
-                <td style={styles.td}>{transaction.recordID}</td>
-                <td style={styles.td}>{transaction.username}</td>
-                <td style={styles.td}>{transaction.services_name}</td>
-                <td style={styles.td}>{transaction.paymentdescription}</td>
-                <td style={styles.td}>{formatDate(transaction.Date)}</td>
-                <td style={styles.td}>{formatTime(transaction.Time)}</td>
-                <td style={styles.td}>{transaction.total}</td>
-                <td style={styles.td}>{transaction.status}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Declined Transactions Table */}
-            <div style={styles.CurrentUsers}>
-        <h4>Declined Transactions:</h4>
-        <table style={styles.table}>
-          <thead>
-            <tr>
-              <th style={styles.th}>Record ID</th>
-              <th style={styles.th}>Username</th>
-              <th style={styles.th}>Service Name</th>
-              <th style={styles.th}>Payment Description</th>
-              <th style={styles.th}>Date</th>
-              <th style={styles.th}>Time</th>
-              <th style={styles.th}>Total</th>
-              <th style={styles.th}>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {declinedTransactions.map((transaction, index) => (
-              <tr key={transaction.recordID}>
-                <td style={styles.td}>{transaction.recordID}</td>
-                <td style={styles.td}>{transaction.username}</td>
-                <td style={styles.td}>{transaction.services_name}</td>
-                <td style={styles.td}>{transaction.paymentdescription}</td>
-                <td style={styles.td}>{formatDate(transaction.Date)}</td>
-                <td style={styles.td}>{formatTime(transaction.Time)}</td>
-                <td style={styles.td}>{transaction.total}</td>
-                <td style={styles.td}>{transaction.status}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
         return (
           <div>
-
-
+            {/* Pending Transactions Table */}
             <div style={styles.CurrentUsers}>
-              <h4>Current Transactions:</h4>
+              <h4>Pending Transactions:</h4>
               <table style={styles.table}>
                 <thead>
                   <tr>
@@ -668,7 +559,7 @@ const AdminDashboard = ({}) => {
                   </tr>
                 </thead>
                 <tbody>
-                  {transactions.map((transaction, index) => (
+                  {pendingTransactions.map((transaction, index) => (
                     <tr key={transaction.recordID}>
                       <td style={styles.td}>{transaction.recordID}</td>
                       <td style={styles.td}>{transaction.username}</td>
@@ -679,85 +570,147 @@ const AdminDashboard = ({}) => {
                       <td style={styles.td}>{transaction.total}</td>
                       <td style={styles.td}>{transaction.status}</td>
                       <td style={styles.td}>
-                        <button onClick={() => handleConfirmTransaction(index)} style={styles.editButton}>Confirm</button>
+                        <button onClick={() => handleConfirmTransaction(transaction)} style={styles.editButton}>Confirm</button>
                         <button onClick={() => handleDeclineTransaction(transaction.recordID)} style={styles.deleteButton}>Decline</button>
                       </td>
                     </tr>
                   ))}
                 </tbody>
+              </table>
+            </div>
 
+            {/* Paid Transactions Table */}
+            <div style={styles.CurrentUsers}>
+              <h4>Paid Transactions:</h4>
+              <table style={styles.table}>
+                <thead>
+                  <tr>
+                    <th style={styles.th}>Record ID</th>
+                    <th style={styles.th}>Username</th>
+                    <th style={styles.th}>Service Name</th>
+                    <th style={styles.th}>Payment Description</th>
+                    <th style={styles.th}>Date</th>
+                    <th style={styles.th}>Time</th>
+                    <th style={styles.th}>Total</th>
+                    <th style={styles.th}>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {paidTransactions.map((transaction, index) => (
+                    <tr key={transaction.recordID}>
+                      <td style={styles.td}>{transaction.recordID}</td>
+                      <td style={styles.td}>{transaction.username}</td>
+                      <td style={styles.td}>{transaction.services_name}</td>
+                      <td style={styles.td}>{transaction.paymentdescription}</td>
+                      <td style={styles.td}>{formatDate(transaction.Date)}</td>
+                      <td style={styles.td}>{formatTime(transaction.Time)}</td>
+                      <td style={styles.td}>{transaction.total}</td>
+                      <td style={styles.td}>{transaction.status}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
 
+            {/* Declined Transactions Table */}
+            <div style={styles.CurrentUsers}>
+              <h4>Declined Transactions:</h4>
+              <table style={styles.table}>
+                <thead>
+                  <tr>
+                    <th style={styles.th}>Record ID</th>
+                    <th style={styles.th}>Username</th>
+                    <th style={styles.th}>Service Name</th>
+                    <th style={styles.th}>Payment Description</th>
+                    <th style={styles.th}>Date</th>
+                    <th style={styles.th}>Time</th>
+                    <th style={styles.th}>Total</th>
+                    <th style={styles.th}>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {declinedTransactions.map((transaction, index) => (
+                    <tr key={transaction.recordID}>
+                      <td style={styles.td}>{transaction.recordID}</td>
+                      <td style={styles.td}>{transaction.username}</td>
+                      <td style={styles.td}>{transaction.services_name}</td>
+                      <td style={styles.td}>{transaction.paymentdescription}</td>
+                      <td style={styles.td}>{formatDate(transaction.Date)}</td>
+                      <td style={styles.td}>{formatTime(transaction.Time)}</td>
+                      <td style={styles.td}>{transaction.total}</td>
+                      <td style={styles.td}>{transaction.status}</td>
+                    </tr>
+                  ))}
+                </tbody>
               </table>
             </div>
           </div>
         );
 
 
-
-
       case 'settings':
         return (
           <div style={styles.settingsContainer}>
-  <h2>Account Settings</h2>
-  
-  {/* Profile Info */}
-  <section style={styles.section}>
-    <h3>Profile Information</h3>
-    <input type="text" placeholder="Full Name" style={styles.input} />
-    <input type="email" placeholder="Email Address" style={styles.input} />
-    <input type="file" accept="image/*" style={styles.fileInput} />
-    {/* Display current profile picture */}
-  </section>
-  
-  {/* Password Change */}
-  <section style={styles.section}>
-    <h3>Change Password</h3>
-    <input type="password" placeholder="Current Password" style={styles.input} />
-    <input type="password" placeholder="New Password" style={styles.input} />
-    <input type="password" placeholder="Confirm New Password" style={styles.input} />
-    <button style={styles.button}>Update Password</button>
-  </section>
-  
-  {/* Notification Preferences */}
-  <section style={styles.section}>
-    <h3>Notification Preferences</h3>
-    <label>
-      <input type="checkbox" /> Email Notifications
-    </label>
-    <label>
-      <input type="checkbox" /> SMS Notifications
-    </label>
-    <label>
-      <input type="checkbox" /> Push Notifications
-    </label>
-  </section>
-  
-  {/* Privacy Settings */}
-  <section style={styles.section}>
-    <h3>Privacy Settings</h3>
-    <select style={styles.select}>
-      <option value="public">Public Profile</option>
-      <option value="private">Private Profile</option>
-    </select>
-    <button style={styles.button}>Save Privacy</button>
-  </section>
-  
-  {/* Appearance & Theme */}
-  <section style={styles.section}>
-    <h3>Appearance</h3>
-    <button style={styles.button}>Toggle Dark Mode</button>
-    <select style={styles.select}>
-      <option value="en">English</option>
-      <option value="es">Spanish</option>
-      {/* Add more languages */}
-    </select>
-  </section>
-  
-  {/* Save Changes Button */}
-  <div style={{ marginTop: '20px' }}>
-    <button style={styles.saveButton}>Save All Changes</button>
-  </div>
-</div> 
+            <h2>Account Settings</h2>
+            
+            {/* Profile Info */}
+            <section style={styles.section}>
+              <h3>Profile Information</h3>
+              <input type="text" placeholder="Full Name" style={styles.input} />
+              <input type="email" placeholder="Email Address" style={styles.input} />
+              <input type="file" accept="image/*" style={styles.fileInput} />
+              {/* Display current profile picture */}
+            </section>
+            
+            {/* Password Change */}
+            <section style={styles.section}>
+              <h3>Change Password</h3>
+              <input type="password" placeholder="Current Password" style={styles.input} />
+              <input type="password" placeholder="New Password" style={styles.input} />
+              <input type="password" placeholder="Confirm New Password" style={styles.input} />
+              <button style={styles.button}>Update Password</button>
+            </section>
+            
+            {/* Notification Preferences */}
+            <section style={styles.section}>
+              <h3>Notification Preferences</h3>
+              <label>
+                <input type="checkbox" /> Email Notifications
+              </label>
+              <label>
+                <input type="checkbox" /> SMS Notifications
+              </label>
+              <label>
+                <input type="checkbox" /> Push Notifications
+              </label>
+            </section>
+            
+            {/* Privacy Settings */}
+            <section style={styles.section}>
+              <h3>Privacy Settings</h3>
+              <select style={styles.select}>
+                <option value="public">Public Profile</option>
+                <option value="private">Private Profile</option>
+              </select>
+              <button style={styles.button}>Save Privacy</button>
+            </section>
+            
+            {/* Appearance & Theme */}
+            <section style={styles.section}>
+              <h3>Appearance</h3>
+              <button style={styles.button}>Toggle Dark Mode</button>
+              <select style={styles.select}>
+                <option value="en">English</option>
+                <option value="es">Spanish</option>
+                {/* Add more languages */}
+              </select>
+            </section>
+            
+            {/* Save Changes Button */}
+            <div style={{ marginTop: '20px' }}>
+              <button style={styles.saveButton}>Save All Changes</button>
+            </div>
+          </div> 
         );
       default:
         return null;

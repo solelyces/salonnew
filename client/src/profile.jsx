@@ -13,6 +13,7 @@ import profile from './assets/profile.jpg';
 import Modal from 'react-modal';
 
 const Profile = () => {
+  const [activeContent, setActiveContent] = useState('profile');
   const [user, setUser] = useState(null);
   const [bookings, setBookings] = useState([]);
   const navigate = useNavigate();
@@ -270,28 +271,28 @@ const Profile = () => {
 
 
 
-useEffect(() => {
-  fetchUserProfile();
-}, [user]);
+  useEffect(() => {
+    fetchUserProfile();
+  }, [user]);
 
-const fetchUserProfile = () => {
-  if (user && user.user_id) {
-    fetch(`http://localhost:3000/api/users/${user.user_id}`)
-      .then(res => res.json())
-      .then(data => {
-        setProfileData(prev => ({
-          ...prev,
-          firstName: data.firstname || '',
-          lastName: data.lastname || '',
-          email: data.email || '',
-        }));
-      })
-      .catch(err => {
-        console.error('Error fetching user profile:', err);
-        alert('Failed to fetch user profile.');
-      });
-  }
-};
+  const fetchUserProfile = () => {
+    if (user && user.user_id) {
+      fetch(`http://localhost:3000/api/users/${user.user_id}`)
+        .then(res => res.json())
+        .then(data => {
+          setProfileData(prev => ({
+            ...prev,
+            firstName: data.firstname || '',
+            lastName: data.lastname || '',
+            email: data.email || '',
+          }));
+        })
+        .catch(err => {
+          console.error('Error fetching user profile:', err);
+          alert('Failed to fetch user profile.');
+        });
+    }
+  };
 
 
 
@@ -356,8 +357,6 @@ const fetchUserProfile = () => {
 
 
 
-
-
   const handleLogout = () => {
     const confirmLogout = window.confirm("Are you sure you want to log out?");
     if (confirmLogout) {
@@ -410,7 +409,6 @@ const fetchUserProfile = () => {
               <h4>{user?.username || "Guest"}</h4>
               <div className="user-status">
                 <i className="bi bi-award"></i>
-                <span>Active Member</span>
               </div>
             </div>
 
@@ -431,9 +429,11 @@ const fetchUserProfile = () => {
                 </li>
                 <li className="nav-item">
                   <a
+                    href="#"
                     className={`nav-link ${activeTab === 'recentAppointments' ? 'active' : ''}`}
                     style={{ cursor: 'pointer' }}
-                    onClick={() => {
+                    onClick={(e) => {
+                      e.preventDefault();
                       showContent('profile'); 
                       fetchRecentConfirmed(); 
                       setActiveTab('recentAppointments');
@@ -480,70 +480,69 @@ const fetchUserProfile = () => {
 
         <div className="receipt-box-custom col-lg-8">
           <h3 className='title'>My Profile</h3>
-           {activeTab === 'myAppointments' && (
-              <>
-          <h3 className='title'>My Appointments</h3>
-          {Array.isArray(bookings) ? (
-            bookings.length === 0 ? (
-              <p>No appointments found.</p>
-            ) : (
-              <div className="all-bookings-container">
-                {bookings.map((booking, index) => (
-                  <div key={index} className="receipt">
-                    <h4 className='border-bottom mb-4 pb-3'>Book No: {booking.recordID}</h4>
-                    <h5>Services Acquired:</h5>
-                    <div className="services-list">
-                      <div className="service-item">
-                        <span className="service-name">{booking.services_name}</span>
-                        <span className="service-price">Php {Number(booking.total).toFixed(2)}</span>
+          {activeTab === 'myAppointments' && (
+            <>
+              <h3 className='title'>My Appointments</h3>
+              {Array.isArray(bookings) ? (
+                bookings.length === 0 ? (
+                  <p>No appointments found.</p>
+                ) : (
+                  <div className="all-bookings-container">
+                    {bookings.map((booking, index) => (
+                      <div key={index} className="receipt">
+                        <h4 className='border-bottom mb-4 pb-3'>Book No: {booking.recordID}</h4>
+                        <h5>Services Acquired:</h5>
+                        <div className="services-list">
+                          <div className="service-item">
+                            <span className="service-name">{booking.services_name}</span>
+                            <span className="service-price">Php {Number(booking.total).toFixed(2)}</span>
+                          </div>
+                        </div>
+                        <h5 className="booking-date">Booking Date:</h5>
+                        <div className="booking-item">
+                          <span className="booking-name">{formatDate(booking.Date)}</span>
+                        </div>
+                        <h5 className="booking-time">Booking Time:</h5>
+                        <div className="booking-item">
+                          <span className="booking-name">{formatTime(booking.Time)}</span>
+                        </div>
+                        <div className="payment-method">
+                          <span>Payment Method: <b>{booking.paymentdescription}</b></span>
+                        </div>
+                        <div className="status-container">
+                          <div className={`status-label ${booking.status.toLowerCase()}`}>
+                            Status: {booking.status}
+                          </div>
+                        </div>
+                        <div className="action-buttons" style={{ marginTop: '10px' }}>
+                          <button
+                            className="edit-btn"
+                            onClick={() => handleEdit(booking)}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            className="delete-btn btn btn-danger btn-sm"
+                            onClick={() => handleDelete(booking)}
+                          >
+                            Delete
+                          </button>
+                        </div>
                       </div>
-                    </div>
-                    <h5 className="booking-date">Booking Date:</h5>
-                    <div className="booking-item">
-                      <span className="booking-name">{formatDate(booking.Date)}</span>
-                    </div>
-                    <h5 className="booking-time">Booking Time:</h5>
-                    <div className="booking-item">
-                      <span className="booking-name">{formatTime(booking.Time)}</span>
-                    </div>
-                    <div className="payment-method">
-                      <span>Payment Method: <b>{booking.paymentdescription}</b></span>
-                    </div>
-                    <div className="status-container">
-                      <div className={`status-label ${booking.status.toLowerCase()}`}>
-                        Status: {booking.status}
-                      </div>
-                    </div>
-                    <div className="action-buttons" style={{ marginTop: '10px' }}>
-                      <button
-                        className="edit-btn"
-                        onClick={() => handleEdit(booking)}
-                      >
-                        Edit
-                      </button>
-                      <button
-                        className="delete-btn btn btn-danger btn-sm"
-                        onClick={() => handleDelete(booking)}
-                      >
-                        Delete
-                      </button>
-                    </div>
+                    ))}
                   </div>
-                ))}
+                )
+              ) : (
+                <p>Loading bookings...</p>
+              )}
+              <div className="total-payments-section mt-4 p-3 border rounded bg-light">
+                <div className='inside-total-payments'>
+                  <h5><BsWallet2 className='icons' size={20} />Total Pending Payments:</h5>
+                  <p className="fs-4">Php {Number(totalPending).toFixed(2)}</p> 
+                </div>
               </div>
-            )
-          ) : (
-            <p>Loading bookings...</p>
+            </>
           )}
-           <div className="total-payments-section mt-4 p-3 border rounded bg-light">
-            <div className='inside-total-payments'>
-            <h5><BsWallet2 className='icons' size={20} />Total Pending Payments:</h5>
-            <p className="fs-4">Php {Number(totalPending).toFixed(2)}</p>
-            </div>
-            
-          </div>
-          </>
-           )}
 
           {editModalOpen && (
             <Modal
@@ -556,7 +555,7 @@ const fetchUserProfile = () => {
             >
               <button onClick={() => setEditModalOpen(false)} className="Modal__CloseButtonProfile">×</button>
               <h2>Edit Booking</h2>
-                <select
+              <select
                   id="editServices"
                   className="form-control"
                   value={editServices.length > 0 ? editServices[0].services_id : ''}
@@ -574,10 +573,10 @@ const fetchUserProfile = () => {
                       {svc.services_name}
                     </option>
                   ))}
-                </select>
-                  <div>
-                    <strong>Price: </strong> Php {editTotal.toFixed(2)}
-                  </div>
+              </select>
+              <div>
+                <strong>Price: </strong> Php {editTotal.toFixed(2)}
+              </div>
               {/* Date */}
               <div className="form-group">
                 <label htmlFor="editDate">Date:</label>
@@ -627,112 +626,115 @@ const fetchUserProfile = () => {
             </Modal>
           )}
 
+
           {activeTab === 'recentAppointments' && (
             <>
-            <h3 className='title'>Recent Appointments</h3>
-          {recentAppointments.length > 0 ? (
-            <table className="table table-striped">
-              <thead>
-                <tr>
-                  <th>Username</th>
-                  <th>Service Name</th>
-                  <th>Payment Description</th>
-                  <th>Date</th>
-                  <th>Time</th>
-                  <th>Total</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {recentAppointments.map((appt) => (
-                  <tr key={appt.recordID}>
-                    <td>{user?.username || 'Guest'}</td>
-                    <td>{appt.services_name}</td>
-                    <td>{appt.paymentdescription}</td>
-                    <td>{formatDate(appt.Date)}</td>
-                    <td>{formatTime(appt.Time)}</td>
-                    <td>Php {Number(appt.total).toFixed(2)}</td>
-                    <td>{appt.status}</td>
-                    <td>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          ) : (
-      <p>No recent appointments</p>
-    )}
-  </>
+              <h3 className='title'>Recent Appointments</h3>
+              {recentAppointments.length > 0 ? (
+                  <table className="table table-striped">
+                    <thead>
+                      <tr>
+                        <th>Username</th>
+                        <th>Service Name</th>
+                        <th>Payment Description</th>
+                        <th>Date</th>
+                        <th>Time</th>
+                        <th>Total</th>
+                        <th>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {recentAppointments.map((appt) => (
+                        <tr key={appt.recordID}>
+                          <td>{user?.username || 'Guest'}</td>
+                          <td>{appt.services_name}</td>
+                          <td>{appt.paymentdescription}</td>
+                          <td>{formatDate(appt.Date)}</td>
+                          <td>{formatTime(appt.Time)}</td>
+                          <td>Php {Number(appt.total).toFixed(2)}</td>
+                          <td>{appt.status}</td>
+                          <td>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                ) : (
+                <p>No recent appointments</p>
+              )}
+            </>
           )}
-{activeTab === 'settings' && (
-  <div className="settings-form mt-4 p-3 border rounded bg-light">
-    <h3>Account Settings</h3>
-    {!isEditingProfile ? (
-      <div>
-        <p>
-          <strong>Username:</strong> {user?.username}
-        </p>
-            <p><strong>First Name:</strong> {profileData.firstName}</p>
-            <p><strong>Last Name:</strong> {profileData.lastName}</p>
-            <p><strong>Email:</strong> {profileData.email}</p>
-        <button className="btn btn-primary" onClick={handleEditProfile}>
-          Edit Profile Information
-        </button>
-      </div>
-    ) : (
-      <div>
-        <div className="mb-3">
-          <label htmlFor="firstname" className="form-label">First Name</label>
-            <input
-              type="text"
-              id="firstname"
-              className="form-control"
-              value={editProfileForm.firstname}
-              onChange={(e) => handleProfileInputChange('firstname', e.target.value)}
-            />
-        </div>
-        <div className="mb-3">
-          <label htmlFor="lastname" className="form-label">Last Name</label>
-          <input
-            type="text"
-            id="lastname"
-            className="form-control"
-            value={editProfileForm.lastname}
-            onChange={(e) => handleProfileInputChange('lastname', e.target.value)}
-          />
-        </div>
-        <div className="mb-3">
-          <label htmlFor="username" className="form-label">Username</label>
-          <input
-            type="text"
-            id="username"
-            className="form-control"
-            value={editProfileForm.username}
-            onChange={(e) => handleProfileInputChange('username', e.target.value)}
-          />
-        </div>
-        <div className="mb-3">
-          <label htmlFor="email" className="form-label">Email</label>
-          <input
-            type="email"
-            id="email"
-            className="form-control"
-            value={editProfileForm.email}
-            onChange={(e) => handleProfileInputChange('email', e.target.value)}
-          />
-        </div>
-          <button
-            type="button"
-            className="btn btn-success"
-            onClick={(e) => { e.preventDefault(); handleProfileSave(); }}
-          >
-            Save Changes
-          </button>
-        <button className="btn btn-secondary ms-2" onClick={() => setIsEditingProfile(false)}>Cancel</button>
-        
-      </div>
-    )}
-     {/* Display Preferences */}
+
+
+          {activeTab === 'settings' && (
+            <div className="settings-form mt-4 p-3 border rounded bg-light">
+              <h3>Account Settings</h3>
+              {!isEditingProfile ? (
+                  <div>
+                    <p>
+                      <strong>Username:</strong> {user?.username}
+                    </p>
+                    <p><strong>First Name:</strong> {profileData.firstName}</p>
+                    <p><strong>Last Name:</strong> {profileData.lastName}</p>
+                    <p><strong>Email:</strong> {profileData.email}</p>
+                    <button className="btn btn-primary" onClick={handleEditProfile}>
+                      Edit Profile Information
+                    </button>
+                  </div>
+                ) : (
+                <div>
+                  <div className="mb-3">
+                    <label htmlFor="firstname" className="form-label">First Name</label>
+                      <input
+                        type="text"
+                        id="firstname"
+                        className="form-control"
+                        value={editProfileForm.firstname}
+                        onChange={(e) => handleProfileInputChange('firstname', e.target.value)}
+                      />
+                  </div>
+                  <div className="mb-3">
+                    <label htmlFor="lastname" className="form-label">Last Name</label>
+                    <input
+                      type="text"
+                      id="lastname"
+                      className="form-control"
+                      value={editProfileForm.lastname}
+                      onChange={(e) => handleProfileInputChange('lastname', e.target.value)}
+                    />
+                  </div>
+                  <div className="mb-3">
+                    <label htmlFor="username" className="form-label">Username</label>
+                    <input
+                      type="text"
+                      id="username"
+                      className="form-control"
+                      value={editProfileForm.username}
+                      onChange={(e) => handleProfileInputChange('username', e.target.value)}
+                    />
+                  </div>
+                  <div className="mb-3">
+                    <label htmlFor="email" className="form-label">Email</label>
+                    <input
+                      type="email"
+                      id="email"
+                      className="form-control"
+                      value={editProfileForm.email}
+                      onChange={(e) => handleProfileInputChange('email', e.target.value)}
+                    />
+                  </div>
+                    <button
+                      type="button"
+                      className="btn btn-success"
+                      onClick={(e) => { e.preventDefault(); handleProfileSave(); }}
+                    >
+                      Save Changes
+                    </button>
+                  <button className="btn btn-secondary ms-2" onClick={() => setIsEditingProfile(false)}>Cancel</button>
+                  
+                </div>
+              )}
+              {/* Display Preferences */}
               <div className="mb-3 mt-4">
                 <label htmlFor="theme" className="form-label">Theme</label>
                 <select
@@ -774,10 +776,9 @@ const fetchUserProfile = () => {
                   Enable Notifications
                 </label>
               </div>
-  </div>
-)}
+            </div>
+          )}
         </div>
-
       </div>
 
       <div className="container">

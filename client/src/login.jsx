@@ -9,20 +9,16 @@ function LoginForm({ onLoginSuccess }) {
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [hover, setHover] = useState(false);
-
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setMessage('');
-
     if (!username || !password) {
       setMessage('Please enter username and password');
       return;
     }
-
     setLoading(true);
-
     try {
       const response = await axios.post('http://localhost:3000/login', {
         username,
@@ -30,7 +26,6 @@ function LoginForm({ onLoginSuccess }) {
         role,
       });
       console.log('Login response:', response);
-
       if (response.status === 200) {
          const { user } = response.data;
          const userData = {
@@ -38,17 +33,14 @@ function LoginForm({ onLoginSuccess }) {
           role: user.role,
           user_id: user.user_id      // This should ideally come from the backend
         };
-
-  if (role === 'Admin') {
-    localStorage.setItem('adminUser', JSON.stringify(userData));
-  } else {
-    localStorage.setItem('user', JSON.stringify(userData));
-  }
-
+          if (role === 'Admin') {
+            localStorage.setItem('adminUser', JSON.stringify(userData));
+          } else {
+            localStorage.setItem('user', JSON.stringify(userData));
+          }
         console.log('User data stored in localStorage:', userData);
         setMessage('Login successful!');
         alert(`Welcome Back, ${userData.username}!`);
-
         onLoginSuccess(userData); // Optional if you're using lifting state
         navigate(role === 'Admin' ? '/admin' : '/home');
       } else {
@@ -134,7 +126,6 @@ function LoginForm({ onLoginSuccess }) {
 
   return (
     <form onSubmit={handleLogin} style={styles.form}>
-      {/* Back Icon */}
       <svg
         onClick={handleBack}
         onMouseEnter={() => setHover(true)}

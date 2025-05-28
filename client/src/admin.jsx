@@ -5,7 +5,7 @@ import { Chart, registerables } from 'chart.js';
 Chart.register(...registerables);
 
 const AdminDashboard = ({}) => {
- const [activeSection, setActiveSection] = useState('home');
+  const [activeSection, setActiveSection] = useState('home');
   const [users, setUsers] = useState([]);
   const storedUser = JSON.parse(localStorage.getItem('adminUser'));
   const username = storedUser?.username || 'Admin';
@@ -13,8 +13,8 @@ const AdminDashboard = ({}) => {
   const [isEditing, setIsEditing] = useState(false);
   const [pendingTransactions, setPendingTransactions] = useState([]);
   const [paidTransactions, setPaidTransactions] = useState([]);
+  const [declinedTransactions, setDeclinedTransactions] = useState([]);
   
-  // Combine the newUser  state into one declaration
   const [newUser , setNewUser ] = useState({
     user_id: '',
     firstname: '',
@@ -24,23 +24,26 @@ const AdminDashboard = ({}) => {
     password: '',
     role: 'Client'
   });
+
   const [editingUserIndex, setEditingUserIndex] = useState(null);
   const [message, setMessage] = useState('');
-const salesChartInstance = useRef(null);
-const userDistributionChartInstance = useRef(null);
-const [userCount, setUserCount] = useState(0);
-const [transactionCount, setTransactionCount] = useState(0);
-const [pendingCount, setPendingCount] = useState(0);
-const [hoveredCard, setHoveredCard] = useState(null);
-const [totalRevenue, setTotalRevenue] = useState(0);
+  const salesChartInstance = useRef(null);
+  const userDistributionChartInstance = useRef(null);
+  const [userCount, setUserCount] = useState(0);
+  const [transactionCount, setTransactionCount] = useState(0);
+  const [pendingCount, setPendingCount] = useState(0);
+  const [hoveredCard, setHoveredCard] = useState(null);
+  const [totalRevenue, setTotalRevenue] = useState(0);
 
-  // Fetch users and transactions from the database
+
   useEffect(() => {
+
+    //fetch users
     const fetchUsers = async () => {
       try {
         const response = await axios.get('http://localhost:3000/api/users');
-        setUsers(response.data); // Assuming response.data is an array of users
-        setUserCount(response.data.length); // Set user count
+        setUsers(response.data); 
+        setUserCount(response.data.length);
       } catch (error) {
         console.error('Error fetching users:', error);
         setMessage('Failed to fetch users.');
@@ -48,278 +51,285 @@ const [totalRevenue, setTotalRevenue] = useState(0);
     };
     fetchUsers();
 
-       const fetchTransactions = async () => {
-    try {
-      const response = await axios.get('http://localhost:3000/api/admin/transactions'); // Adjust the URL as necessary
-      console.log('Fetched Transactions:', response.data); // Log the response data
-      setTransactions(response.data); // Assuming response.data is an array of transactions
-      setTransactionCount(response.data.length); // Set transaction count
-    } catch (error) {
-      console.error('Error fetching transactions:', error);
-      setMessage('Failed to fetch transactions.');
-    }
-  };
-  fetchTransactions();
+
+    //fetch transactions
+    const fetchTransactions = async () => {
+      try {
+        const response = await axios.get('http://localhost:3000/api/admin/transactions'); 
+        console.log('Fetched Transactions:', response.data); 
+        setTransactions(response.data); 
+        setTransactionCount(response.data.length); 
+      } catch (error) {
+        console.error('Error fetching transactions:', error);
+        setMessage('Failed to fetch transactions.');
+      }
+    };
+    fetchTransactions();
 
 
+
+    //fetch pending transactions
     const fetchPending = async () => {
-    try {
-      const response = await axios.get('http://localhost:3000/api/admin/transactions-pending'
-       );
-      
-      setPendingTransactions(response.data);
-      setPendingCount(response.data.length); // Set pending transaction count
-    } catch (error) {
-      console.error('Error fetching pending transactions:', error);
-    }
-  };
-
-  // Fetch paid transactions
-  const fetchPaid = async () => {
-    try {
-      const response = await axios.get('http://localhost:3000/api/admin/transactions-paid'
-       );
-      setPaidTransactions(response.data);
-    } catch (error) {
-      console.error('Error fetching paid transactions:', error);
-    }
-  };
-
-  fetchPending();
-  fetchPaid();
+      try {
+        const response = await axios.get('http://localhost:3000/api/admin/transactions-pending'
+        );
+        
+        setPendingTransactions(response.data);
+        setPendingCount(response.data.length); // Set pending transaction count
+      } catch (error) {
+        console.error('Error fetching pending transactions:', error);
+      }
+    };
+    fetchPending();
 
 
+
+    // Fetch paid transactions
+    const fetchPaid = async () => {
+      try {
+        const response = await axios.get('http://localhost:3000/api/admin/transactions-paid'
+        );
+        setPaidTransactions(response.data);
+      } catch (error) {
+        console.error('Error fetching paid transactions:', error);
+      }
+    };
+    fetchPaid();
+
+
+
+    // Fetch declined transactions
+    const fetchDeclined = async () => {
+      try {
+        const response = await axios.get('http://localhost:3000/api/admin/transactions-declined'
+        );
+        setDeclinedTransactions(response.data);
+      } catch (error) {
+        console.error('Error fetching paid transactions:', error);
+      }
+    };
+    fetchDeclined();
+
+
+
+    // Fetch total revenue
     const fetchRevenue = async () => {
-    try {
-      const response = await axios.get('http://localhost:3000/api/admin/revenue');
-      setTotalRevenue(response.data.totalRevenue);
-    } catch (error) {
-      console.error('Error fetching revenue:', error);
+      try {
+        const response = await axios.get('http://localhost:3000/api/admin/revenue');
+        setTotalRevenue(response.data.totalRevenue);
+      } catch (error) {
+        console.error('Error fetching revenue:', error);
+      }
+    };
+    fetchRevenue();
+
+
+
+
+  
+    if (userDistributionChartInstance.current) {
+      userDistributionChartInstance.current.destroy();
     }
-  };
 
-  fetchRevenue();
+    const userDistChartCtx = document.getElementById('userDistributionChart').getContext('2d');
 
-    const userDistributionData = {
+ 
+    // Create user distribution chart with dynamic data
+    const dynamicUserDistributionData = {
       labels: ['Users', 'Transactions', 'Pending Payments'],
       datasets: [{
         label: 'Data Overview',
         data: [userCount, transactionCount, pendingCount],
-        borderColor: ['#4a90e2', '#50e3c2', '#f5a623'],
-        hoverOffset: 30
-      }]
+        backgroundColor: ['#4a90e2', '#50e3c2', '#f5a623'],
+        hoverOffset: 30,
+      }],
     };
 
- 
-
-
-
-
-
-  
-
-  
-  if (userDistributionChartInstance.current) {
-    userDistributionChartInstance.current.destroy();
-  }
-
-  const userDistChartCtx = document.getElementById('userDistributionChart').getContext('2d');
-
- 
-  // Create user distribution chart with dynamic data
-  const dynamicUserDistributionData = {
-    labels: ['Users', 'Transactions', 'Pending Payments'],
-    datasets: [{
-      label: 'Data Overview',
-      data: [userCount, transactionCount, pendingCount],
-      backgroundColor: ['#4a90e2', '#50e3c2', '#f5a623'],
-      hoverOffset: 30,
-    }],
-  };
-
-  const userDistributionConfig = {
-    type: 'doughnut',
-    data: dynamicUserDistributionData,
-    options: {
-      responsive: true,
-      cutout: '60%',
-      plugins: {
-        legend: { position: 'bottom', labels: { color: '#35495e', font: { size: 14 } } },
-        tooltip: { enabled: true }
-      }
-    }
-  };
-
-  userDistributionChartInstance.current = new Chart(userDistChartCtx, userDistributionConfig);
-
-  // Cleanup function
-  return () => {
-    if (salesChartInstance.current) {
-      salesChartInstance.current.destroy();
-    }
-    if (userDistributionChartInstance.current) {
-      userDistributionChartInstance.current.destroy();
-    }
-  };
-}, [userCount, transactionCount, pendingCount]);
-
-const handleMouseEnter = (cardId) => {
-  setHoveredCard(cardId);
-};
-
-const handleMouseLeave = () => {
-  setHoveredCard(null);
-};
-
-// Inside your AdminDashboard component:
-
-const formatDate = (isoString) => {
-  const date = new Date(isoString);
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-};
-
-const formatTime = (timeString) => {
-  const [hours, minutes] = timeString.split(':');
-  const date = new Date();
-  date.setHours(parseInt(hours, 10));
-  date.setMinutes(parseInt(minutes, 10));
-  const options = { hour: 'numeric', minute: 'numeric', hour12: true };
-  return date.toLocaleString('en-US', options).toLowerCase();
-};
-
-const handleAddUser = async () => {
-  try {
-    if (isEditing) {
-      // Prepare payload for update
-      const updatedUser = { ...newUser };
-      
-      // Remove password if empty or in edit mode (not changing password)
-      delete updatedUser.password; // do not include password in update payload
-      
-      const response = await axios.put(`http://localhost:3000/api/users/${updatedUser.user_id}`, updatedUser);
-      
-      if (response.status === 200) {
-        const updatedUsers = [...users];
-        updatedUsers[editingUserIndex] = { ...users[editingUserIndex], ...updatedUser };
-        setUsers(updatedUsers);
-        alert('User updated successfully!');
-      } else {
-        alert('Failed to update user.');
-      }
-    } else {
-      // For creating new user, include password
-      const response = await axios.post('http://localhost:3000/signup', newUser);
-      if (response.status === 201) {
-        setUsers([...users, newUser]);
-        alert('User added successfully!');
-      }
-    }
-  } catch (error) {
-    console.error('Error adding/updating user:', error);
-    alert('Failed to update user.');
-  } finally {
-    // Reset form
-    setNewUser({ firstname: '', lastname: '', username: '', email: '', password: '', role: 'Client' });
-    setEditingUserIndex(null);
-    setIsEditing(false);
-  }
-};
-
-const handleEditUser = (index) => {
-  const userToEdit = users[index];
-  setNewUser({
-    user_id: userToEdit.user_id, // Ensure this exists
-    firstname: userToEdit.firstname,
-    lastname: userToEdit.lastname,
-    username: userToEdit.username,
-    email: userToEdit.email,
-  });
-  console.log('Preparing to update, newUser:', newUser);
-  setEditingUserIndex(index);
-  setIsEditing(true);
-};
-
-  
-
-const handleDeleteUser = (user_id) => {
-  // Log the user_id for debugging
-  console.log('Attempting to delete user with ID:', user_id);
-  
-  // Show confirmation dialog
-  const confirmDelete = window.confirm('Are you sure you want to delete this user?');
-
-  if (confirmDelete) {
-    // Proceed with delete request
-    fetch(`http://localhost:3000/api/users/${user_id}`, { method: 'DELETE' })
-      .then((res) => {
-        if (res.ok) {
-          alert('User deleted successfully!');
-          setUsers(prevUsers => prevUsers.filter(user => user.id !== user_id));
-        } else {
-          return res.text().then((text) => {
-            throw new Error(text);
-          });
+    const userDistributionConfig = {
+      type: 'doughnut',
+      data: dynamicUserDistributionData,
+      options: {
+        responsive: true,
+        cutout: '60%',
+        plugins: {
+          legend: { position: 'bottom', labels: { color: '#35495e', font: { size: 14 } } },
+          tooltip: { enabled: true }
         }
-      })
-      .catch((err) => {
-        alert('Error deleting user: ' + err.message);
-      });
-  } else {
-    // User canceled the deletion
-    console.log('Deletion canceled for user ID:', user_id);
-  }
-};
+      }
+    };
 
+    userDistributionChartInstance.current = new Chart(userDistChartCtx, userDistributionConfig);
 
-const handleDeclineTransaction = async (index) => {
-  const transaction = transactions[index];
-  const recordID = transaction.recordID;
-  console.log('Attempting to decline transaction with ID:', recordID);
-
-  // Show a confirmation dialog
-  const userConfirmed = window.confirm(`Are you sure you want to decline transaction with ID: ${recordID}?`);
-  if (!userConfirmed) {
-    return; // User canceled
-  }
-
-  try {
-    await axios.put(`http://localhost:3000/api/transactions/${recordID}`, { status: 'Declined' });
-    const updatedTransactions = [...transactions];
-    updatedTransactions[index].status = 'Declined'; // Update local state
-    setTransactions(updatedTransactions);
-    alert('Transaction declined!');
-  } catch (error) {
-    console.error('Error declining transaction:', error);
-    alert('Failed to decline transaction.');
-  }
-};
+    // Cleanup function
+    return () => {
+      if (salesChartInstance.current) {
+        salesChartInstance.current.destroy();
+      }
+      if (userDistributionChartInstance.current) {
+        userDistributionChartInstance.current.destroy();
+      }
+    };
+  }, [userCount, transactionCount, pendingCount]);
 
 
 
-const handleConfirmTransaction = async (transaction) => {
-  const recordID = transaction.recordID;
-  console.log('Confirming transaction with ID:', recordID);
 
-  const userConfirmed = window.confirm(`Are you sure you want to confirm transaction with ID: ${recordID}?`);
-  if (!userConfirmed) return;
+  const handleMouseEnter = (cardId) => {
+    setHoveredCard(cardId);
+  };
 
-  try {
-    await axios.put(`http://localhost:3000/api/transactions/${recordID}`, { status: 'Paid' });
-    // Update local state: remove from pending, add to paid, or refresh data
-    setPendingTransactions(prev => prev.filter(t => t.recordID !== recordID));
-    // Optionally, fetch updated lists
-    fetchPending();
-    fetchPaid();
-    alert('Transaction confirmed successfully!');
-  } catch (error) {
-    console.error('Error confirming transaction:', error);
-    alert('Failed to confirm transaction.');
-  }
-};
+  const handleMouseLeave = () => {
+    setHoveredCard(null);
+  };
 
+
+  const formatDate = (isoString) => {
+    const date = new Date(isoString);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const formatTime = (timeString) => {
+    const [hours, minutes] = timeString.split(':');
+    const date = new Date();
+    date.setHours(parseInt(hours, 10));
+    date.setMinutes(parseInt(minutes, 10));
+    const options = { hour: 'numeric', minute: 'numeric', hour12: true };
+    return date.toLocaleString('en-US', options).toLowerCase();
+  };
+
+
+
+  //------------------------------//
+
+
+  //confirmation to edit the user's information
+  const handleAddUser = async () => {
+    try {
+      if (isEditing) {
+        const updatedUser = { ...newUser };
+        
+        delete updatedUser.password; 
+        
+        const response = await axios.put(`http://localhost:3000/api/users/${updatedUser.user_id}`, updatedUser);
+        
+        if (response.status === 200) {
+          const updatedUsers = [...users];
+          updatedUsers[editingUserIndex] = { ...users[editingUserIndex], ...updatedUser };
+          setUsers(updatedUsers);
+          alert('User updated successfully!');
+        } else {
+          alert('Failed to update user.');
+        }
+      } else {
+        const response = await axios.post('http://localhost:3000/signup', newUser);
+        if (response.status === 201) {
+          setUsers([...users, newUser]);
+          alert('User added successfully!');
+        }
+      }
+    } catch (error) {
+      console.error('Error adding/updating user:', error);
+      alert('Failed to update user.');
+    } finally {
+      setNewUser({ firstname: '', lastname: '', username: '', email: '', password: '', role: 'Client' });
+      setEditingUserIndex(null);
+      setIsEditing(false);
+    }
+  };
+
+
+
+  // Function to handle editing a user
+  const handleEditUser = (index) => {
+    const userToEdit = users[index];
+    setNewUser({
+      user_id: userToEdit.user_id, 
+      firstname: userToEdit.firstname,
+      lastname: userToEdit.lastname,
+      username: userToEdit.username,
+      email: userToEdit.email,
+    });
+    console.log('Preparing to update, newUser:', newUser);
+    setEditingUserIndex(index);
+    setIsEditing(true);
+  };
+
+  
+
+  //delete user function
+  const handleDeleteUser = (user_id) => {
+    console.log('Attempting to delete user with ID:', user_id);
+    
+    const confirmDelete = window.confirm('Are you sure you want to delete this user?');
+
+    if (confirmDelete) {
+      fetch(`http://localhost:3000/api/users/${user_id}`, { method: 'DELETE' })
+        .then((res) => {
+          if (res.ok) {
+            alert('User deleted successfully!');
+            setUsers(prevUsers => prevUsers.filter(user => user.id !== user_id));
+          } else {
+            return res.text().then((text) => {
+              throw new Error(text);
+            });
+          }
+        })
+        .catch((err) => {
+          alert('Error deleting user: ' + err.message);
+        });
+    } else {
+      console.log('Deletion canceled for user ID:', user_id);
+    }
+  };
+
+
+  //------------------------//
+
+
+  //decline transaction function
+  const handleDeclineTransaction = async (recordID) => {
+    if (!window.confirm(`Are you sure you want to decline transaction with ID: ${recordID}?`)) return;
+
+    try {
+      await axios.put(`http://localhost:3000/api/transactions/${recordID}`, { status: 'Declined' });
+      
+      setPendingTransactions(prev => prev.filter(t => t.recordID !== recordID));
+      
+      alert('Transaction declined and removed from list!');
+    } catch (error) {
+      console.error('Error declining transaction:', error);
+      alert('Failed to decline transaction.');
+    }
+  };
+
+
+
+  //confirm transaction function
+  const handleConfirmTransaction = async (transaction) => {
+    const recordID = transaction.recordID;
+    console.log('Confirming transaction with ID:', recordID);
+
+    const userConfirmed = window.confirm(`Are you sure you want to confirm transaction with ID: ${recordID}?`);
+    if (!userConfirmed) return;
+
+    try {
+      await axios.put(`http://localhost:3000/api/transactions/${recordID}`, { status: 'Paid' });
+      
+      setPendingTransactions(prev => prev.filter(t => t.recordID !== recordID));
+
+      alert('Transaction confirmed successfully!');
+    } catch (error) {
+      console.error('Error confirming transaction:', error);
+    }
+  };
+
+
+
+  
+  // Function to handle logout
   const handleLogout = () => {
     const confirmLogout = window.confirm("Are you sure you want to log out?");
     if (confirmLogout) {
@@ -342,101 +352,101 @@ const handleConfirmTransaction = async (transaction) => {
         <h1 style={styles.headerTitle}>Welcome, {username}!</h1>
       </header>
 
-<section className="stats-cards" aria-label="Overview statistics" style={styles.statsCards}>
-  {/* Users Card */}
-  <article
-    className="card"
-    tabIndex={0}
-    aria-labelledby="users-title users-value"
-    style={{
-      ...styles.card,
-      transform: hoveredCard === 'users' ? 'translateY(-8px)' : 'none',
-      transition: 'transform 0.3s ease',
-      cursor: 'pointer', // Make cursor indicate clickability
-    }}
-    onMouseEnter={() => handleMouseEnter('users')}
-    onMouseLeave={handleMouseLeave}
-    onClick={() => setActiveSection('users')} // Make entire card clickable
-  >
-    <h3 id="users-title" style={styles.cardTitle}>Users</h3>
-    <div className="value" id="users-value" style={styles.cardValue}>{users.length}</div>
-    {/* Remove tooltip */}
-  </article>
+      <section className="stats-cards" aria-label="Overview statistics" style={styles.statsCards}>
+        {/* Users Card */}
+        <article
+          className="card"
+          tabIndex={0}
+          aria-labelledby="users-title users-value"
+          style={{
+            ...styles.card,
+            transform: hoveredCard === 'users' ? 'translateY(-8px)' : 'none',
+            transition: 'transform 0.3s ease',
+            cursor: 'pointer', 
+          }}
+          onMouseEnter={() => handleMouseEnter('users')}
+          onMouseLeave={handleMouseLeave}
+          onClick={() => setActiveSection('users')} 
+        >
+          <h3 id="users-title" style={styles.cardTitle}>Users</h3>
+          <div className="value" id="users-value" style={styles.cardValue}>{users.length}</div>
+          
+        </article>
 
-  {/* Transactions Card */}
-  <article
-    className="card"
-    tabIndex={0}
-    aria-labelledby="orders-title orders-value"
-    style={{
-      ...styles.card,
-      transform: hoveredCard === 'transactions' ? 'translateY(-5px)' : 'none',
-      transition: 'transform 0.3s ease',
-      cursor: 'pointer',
-    }}
-    onMouseEnter={() => handleMouseEnter('transactions')}
-    onMouseLeave={handleMouseLeave}
-    onClick={() => setActiveSection('appointments')}
-  >
-    <h3 id="orders-title" style={styles.cardTitle}>Transactions</h3>
-    <div className="value" id="orders-value" style={styles.cardValue}>{transactions.length}</div>
-  </article>
+        {/* Transactions Card */}
+        <article
+          className="card"
+          tabIndex={0}
+          aria-labelledby="orders-title orders-value"
+          style={{
+            ...styles.card,
+            transform: hoveredCard === 'transactions' ? 'translateY(-5px)' : 'none',
+            transition: 'transform 0.3s ease',
+            cursor: 'pointer',
+          }}
+          onMouseEnter={() => handleMouseEnter('transactions')}
+          onMouseLeave={handleMouseLeave}
+          onClick={() => setActiveSection('appointments')}
+        >
+          <h3 id="orders-title" style={styles.cardTitle}>Transactions</h3>
+          <div className="value" id="orders-value" style={styles.cardValue}>{transactions.length}</div>
+        </article>
 
-  {/* Pending Transactions Card */}
-  <article
-    className="card"
-    tabIndex={0}
-    aria-labelledby="revenue-title revenue-value"
-    style={{
-      ...styles.card,
-      transform: hoveredCard === 'pendingTransactions' ? 'translateY(-5px)' : 'none',
-      transition: 'transform 0.3s ease',
-      cursor: 'pointer',
-    }}
-    onMouseEnter={() => handleMouseEnter('pendingTransactions')}
-    onMouseLeave={handleMouseLeave}
-    onClick={() => setActiveSection('appointments')}
-  >
-    <h3 id="revenue-title" style={styles.cardTitle}>Pending Transactions</h3>
-    <div className="value" id="revenue-value" style={styles.cardValue}>{pendingTransactions.length}</div>
-  </article>
+        {/* Pending Transactions Card */}
+        <article
+          className="card"
+          tabIndex={0}
+          aria-labelledby="revenue-title revenue-value"
+          style={{
+            ...styles.card,
+            transform: hoveredCard === 'pendingTransactions' ? 'translateY(-5px)' : 'none',
+            transition: 'transform 0.3s ease',
+            cursor: 'pointer',
+          }}
+          onMouseEnter={() => handleMouseEnter('pendingTransactions')}
+          onMouseLeave={handleMouseLeave}
+          onClick={() => setActiveSection('appointments')}
+        >
+          <h3 id="revenue-title" style={styles.cardTitle}>Pending Transactions</h3>
+          <div className="value" id="revenue-value" style={styles.cardValue}>{pendingTransactions.length}</div>
+        </article>
 
-  {/* Revenues Card (no hover effect or tooltip needed) */}
-  <article className="card" tabIndex={0} aria-labelledby="feedback-title feedback-value" style={styles.card}>
-    <h3 id="feedback-title" style={styles.cardTitle}>Revenues</h3>
-    <div className="value" id="feedback-value" style={styles.cardValue}>Php {totalRevenue}</div>
-  </article>
-</section>
+        {/* Revenues Card (no hover effect or tooltip needed) */}
+        <article className="card" tabIndex={0} aria-labelledby="feedback-title feedback-value" style={styles.card}>
+          <h3 id="feedback-title" style={styles.cardTitle}>Revenues</h3>
+          <div className="value" id="feedback-value" style={styles.cardValue}>Php {totalRevenue}</div>
+        </article>
+      </section>
 
-<section className="charts-container" aria-label="Data visualization charts" style={styles.chartsContainer}>
-  {/* System Overview Chart */}
-  <article className="chart-card" aria-labelledby="user-distribution-title" style={styles.chartCard}>
-    <h3 id="user-distribution-title" style={styles.chartTitle}>System Overview</h3>
-    <canvas id="userDistributionChart" width="200" height="50" role="img" aria-label="Pie chart showing user distribution"></canvas>
-  </article>
-  {/* Key Statistics */}
-  <article className="chart-card" aria-labelledby="key-statistics-title" style={styles.chartCard}>
-    <h3 id="key-statistics-title" style={styles.chartTitle}>Key Statistics</h3>
-    <div style={{ display: 'flex', justifyContent: 'space-around', flexWrap: 'wrap' }}>
-      <div style={styles.statBox}>
-        <h4 style={styles.statTitle}>Users</h4>
-        <p style={styles.statValue}>{users.length}</p>
-      </div>
-      <div style={styles.statBox}>
-        <h4 style={styles.statTitle}>Transactions</h4>
-        <p style={styles.statValue}>{transactions.length}</p>
-      </div>
-      <div style={styles.statBox}>
-        <h4 style={styles.statTitle}>Pending Transactions</h4>
-        <p style={styles.statValue}>{pendingTransactions.length}</p>
-      </div>
-      <div style={styles.statBox}>
-        <h4 style={styles.statTitle}>Revenues</h4>
-        <p style={styles.statValue}>Php {totalRevenue}</p>
-      </div>
-    </div>
-  </article>
-</section>
+      <section className="charts-container" aria-label="Data visualization charts" style={styles.chartsContainer}>
+        {/* System Overview Chart */}
+        <article className="chart-card" aria-labelledby="user-distribution-title" style={styles.chartCard}>
+          <h3 id="user-distribution-title" style={styles.chartTitle}>System Overview</h3>
+          <canvas id="userDistributionChart" width="200" height="50" role="img" aria-label="Pie chart showing user distribution"></canvas>
+        </article>
+        {/* Key Statistics */}
+        <article className="chart-card" aria-labelledby="key-statistics-title" style={styles.chartCard}>
+          <h3 id="key-statistics-title" style={styles.chartTitle}>Key Statistics</h3>
+          <div style={{ display: 'flex', justifyContent: 'space-around', flexWrap: 'wrap' }}>
+            <div style={styles.statBox}>
+              <h4 style={styles.statTitle}>Users</h4>
+              <p style={styles.statValue}>{users.length}</p>
+            </div>
+            <div style={styles.statBox}>
+              <h4 style={styles.statTitle}>Transactions</h4>
+              <p style={styles.statValue}>{transactions.length}</p>
+            </div>
+            <div style={styles.statBox}>
+              <h4 style={styles.statTitle}>Pending Transactions</h4>
+              <p style={styles.statValue}>{pendingTransactions.length}</p>
+            </div>
+            <div style={styles.statBox}>
+              <h4 style={styles.statTitle}>Revenues</h4>
+              <p style={styles.statValue}>Php {totalRevenue}</p>
+            </div>
+          </div>
+        </article>
+      </section>
 
 
     </main>
@@ -523,7 +533,7 @@ const handleConfirmTransaction = async (transaction) => {
                 <option>Client</option>
               </select>
               <button onClick={handleAddUser } style={styles.buttonAddUser}>
-              {isEditing ? 'Save Changes' : 'Add User'}
+              {isEditing ? 'Save Changes' : 'Save User'}
             </button>
             </div>
 
@@ -562,7 +572,7 @@ const handleConfirmTransaction = async (transaction) => {
                 <td style={styles.td}>{transaction.status}</td>
                 <td style={styles.td}>
                   <button onClick={() => handleConfirmTransaction(transaction)} style={styles.editButton}>Confirm</button>
-                  <button onClick={() => handleDeclineTransaction(index)} style={styles.deleteButton}>Decline</button>
+                  <button onClick={() => handleDeclineTransaction(transaction.recordID)} style={styles.deleteButton}>Decline</button>
                 </td>
               </tr>
             ))}
@@ -588,6 +598,39 @@ const handleConfirmTransaction = async (transaction) => {
           </thead>
           <tbody>
             {paidTransactions.map((transaction, index) => (
+              <tr key={transaction.recordID}>
+                <td style={styles.td}>{transaction.recordID}</td>
+                <td style={styles.td}>{transaction.username}</td>
+                <td style={styles.td}>{transaction.services_name}</td>
+                <td style={styles.td}>{transaction.paymentdescription}</td>
+                <td style={styles.td}>{formatDate(transaction.Date)}</td>
+                <td style={styles.td}>{formatTime(transaction.Time)}</td>
+                <td style={styles.td}>{transaction.total}</td>
+                <td style={styles.td}>{transaction.status}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Declined Transactions Table */}
+            <div style={styles.CurrentUsers}>
+        <h4>Declined Transactions:</h4>
+        <table style={styles.table}>
+          <thead>
+            <tr>
+              <th style={styles.th}>Record ID</th>
+              <th style={styles.th}>Username</th>
+              <th style={styles.th}>Service Name</th>
+              <th style={styles.th}>Payment Description</th>
+              <th style={styles.th}>Date</th>
+              <th style={styles.th}>Time</th>
+              <th style={styles.th}>Total</th>
+              <th style={styles.th}>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {declinedTransactions.map((transaction, index) => (
               <tr key={transaction.recordID}>
                 <td style={styles.td}>{transaction.recordID}</td>
                 <td style={styles.td}>{transaction.username}</td>
@@ -637,7 +680,7 @@ const handleConfirmTransaction = async (transaction) => {
                       <td style={styles.td}>{transaction.status}</td>
                       <td style={styles.td}>
                         <button onClick={() => handleConfirmTransaction(index)} style={styles.editButton}>Confirm</button>
-                        <button onClick={() => handleDeclineTransaction(index)} style={styles.deleteButton}>Decline</button>
+                        <button onClick={() => handleDeclineTransaction(transaction.recordID)} style={styles.deleteButton}>Decline</button>
                       </td>
                     </tr>
                   ))}
@@ -822,9 +865,9 @@ const handleConfirmTransaction = async (transaction) => {
       marginTop: '10px',
     },
     logoutButton: {
-      marginTop: 'auto', // Pushes the button to the bottom
+      marginTop: 'auto', 
       padding: '10px',
-      backgroundColor: '#dc3545', // Bootstrap danger color
+      backgroundColor: '#dc3545', 
       color: 'white',
       border: 'none',
       borderRadius: '4px',
@@ -984,9 +1027,9 @@ tooltip: {
   cursor: 'pointer',
   zIndex: 1000,
   width: '70%',
-  top: '65%', // Position it below the parent element
-  left: '25px',   // Align to the left of parent
-  marginTop: '20px', // space below the card
+  top: '65%', 
+  left: '25px', 
+  marginTop: '20px', 
   textAlign: 'center',
   alignItems: 'center',
   justifyContent: 'center',
@@ -994,7 +1037,7 @@ tooltip: {
 },
    cardContainer: {
     position: 'relative',
-    display: 'inline-block', // or flex, depending on layout
+    display: 'inline-block', 
   },
   statBox: {
   display: 'block',

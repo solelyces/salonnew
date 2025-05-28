@@ -15,26 +15,22 @@ function SignupForm() {
   const handleSignup = async (e) => {
     e.preventDefault();
     setMessage('');
-
     if (!firstname || !lastname || !username || !email || !password) {
       setMessage('Please fill in all fields.');
       return;
     }
-
     setLoading(true);
-
     try {
       const response = await fetch('http://localhost:3000/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ firstname, lastname, username, email, password, role }),
       });
-
       const data = await response.json();
-
       if (response.ok) {
-        setMessage('Signup successful! You can now login.');
-        // Optionally reset form
+        alert('Signup successful! You can now login.');
+        navigate('/login'); // Redirect to login page
+        // Reset form fields
         setFirstname('');
         setLastname('');
         setUsername('');
@@ -47,7 +43,6 @@ function SignupForm() {
     } catch (error) {
       setMessage('Error connecting to server.');
     }
-
     setLoading(false);
   };
 
@@ -89,8 +84,8 @@ function SignupForm() {
       cursor: 'not-allowed',
     },
     message: {
-      color: 'red',
-      marginTop: '10px',
+      color: 'green',
+      marginTop: '20px',
     },
     backIcon: {
       position: 'absolute',
@@ -112,7 +107,6 @@ function SignupForm() {
   return (
     <div style={styles.container}>
       <form onSubmit={handleSignup}>
-        {/* Back Icon as SVG */}
         <svg
           onClick={handleBack}
           onMouseEnter={() => setHover(true)}

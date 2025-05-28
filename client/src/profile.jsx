@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link, BrowserRouter as Router, useNavigate } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -14,25 +13,21 @@ import profile from './assets/profile.jpg';
 import Modal from 'react-modal';
 
 const Profile = () => {
-  const [activeContent, setActiveContent] = useState('profile');
   const [user, setUser] = useState(null);
   const [bookings, setBookings] = useState([]);
   const navigate = useNavigate();
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [currentBooking, setCurrentBooking] = useState(null);
+  const [editServices, setEditServices] = useState([]);
+  const [editDate, setEditDate] = useState('');
+  const [editTime, setEditTime] = useState('');
+  const [editPayment, setEditPayment] = useState('');
+  const [recentAppointments, setRecentAppointments] = useState([]);
+  const [activeTab, setActiveTab] = useState('myAppointments');
+  const [totalPending, setTotalPending] = useState(0);
+  const [editTotal, setEditTotal] = useState(0);
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
 
-const [editModalOpen, setEditModalOpen] = useState(false);
-const [currentBooking, setCurrentBooking] = useState(null);
-const [editServices, setEditServices] = useState([]);
-const [editDate, setEditDate] = useState('');
-const [editTime, setEditTime] = useState('');
-const [editPayment, setEditPayment] = useState('');
-const [recentAppointments, setRecentAppointments] = useState([]);
-const [activeTab, setActiveTab] = useState('myAppointments');
-const [totalPending, setTotalPending] = useState(0);
-const [editTotal, setEditTotal] = useState(0);
-
-
-  console.log('User:', user);
-  console.log('Bookings:', bookings);
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
@@ -46,287 +41,322 @@ const [editTotal, setEditTotal] = useState(0);
     }
   }, []);
 
-  useEffect(() => {
+
+
+
+
+
+  const fetchBookings = () => {
     if (user && user.user_id) {
-    fetch(`http://localhost:3000/api/client/transactions-pending?user_id=${user?.user_id}`)
-      .then(res => res.json())
-      .then(data => {
-        console.log('Fetched data:', data);
-        if (Array.isArray(data)) {
-          setBookings(data);
-        } else if (data && Array.isArray(data.data)) {
-          setBookings(data.data);
-        } else {
-          setBookings([]);
-        }
-      })
-      .catch(error => {
-        console.error('Error fetching transactions:', error);
-      });
+      fetch(`http://localhost:3000/api/client/transactions-pending?user_id=${user?.user_id}`)
+        .then(res => res.json())
+        .then(data => {
+          if (Array.isArray(data)) {
+            setBookings(data);
+          } else if (data && Array.isArray(data.data)) {
+            setBookings(data.data);
+          } else {
+            setBookings([]);
+          }
+        })
+        .catch(error => {
+          console.error('Error fetching transactions:', error);
+        });
     }
-  }, [user]);
+  };
+
+
 
   const showContent = (content) => {
     setActiveContent(content);
   };
 
-const servicesOptions = [
-  { services_id: 1, services_name: 'Hair Color' , services_price: 200 },
-  { services_id: 2, services_name: 'Hair Cut' , services_price: 80},
-  { services_id: 3, services_name: 'Hair Rebond' , services_price: 1500 },
-  { services_id: 4, services_name: 'Nail Gel' , services_price: 200},
-  { services_id: 5, services_name: 'Nail Polish' , services_price: 150},
-  { services_id: 6, services_name: 'Nail Color' , services_price: 200},
-];  
 
-const paymentOptions = [
-  { paymentinfo_id: 1, paymentdescription: 'Gcash'},
-  { paymentinfo_id: 2, paymentdescription: 'Paymaya' },
-  { paymentinfo_id: 3, paymentdescription: 'Master Card' },
-  { paymentinfo_id: 4, paymentdescription: 'Visa' },
-  { paymentinfo_id: 5, paymentdescription: 'Cash at Salon' },
-];
+  const servicesOptions = [
+    { services_id: 1, services_name: 'Hair Color' , services_price: 200 },
+    { services_id: 2, services_name: 'Hair Cut' , services_price: 80},
+    { services_id: 3, services_name: 'Hair Rebond' , services_price: 1500 },
+    { services_id: 4, services_name: 'Nail Gel' , services_price: 200},
+    { services_id: 5, services_name: 'Nail Polish' , services_price: 150},
+    { services_id: 6, services_name: 'Nail Color' , services_price: 200},
+  ];  
 
-const [profileData, setProfileData] = useState({
-  username: '',
-  firstName: '',
-  lastName: '',
-  displayName: '',
-  email: '',
-  phone: '',
-  theme: 'light', // or 'dark'
-  language: 'en', // default language
-  notifications: true,
-  privacy: 'public' // or 'private'
-});
+  const paymentOptions = [
+    { paymentinfo_id: 1, paymentdescription: 'Gcash'},
+    { paymentinfo_id: 2, paymentdescription: 'Paymaya' },
+    { paymentinfo_id: 3, paymentdescription: 'Master Card' },
+    { paymentinfo_id: 4, paymentdescription: 'Visa' },
+    { paymentinfo_id: 5, paymentdescription: 'Cash at Salon' },
+  ];
+
+  const [profileData, setProfileData] = useState({
+    username: '',
+    firstName: '',
+    lastName: '',
+    displayName: '',
+    email: '',
+    phone: '',
+    theme: 'light',
+    language: 'en',
+    notifications: true,
+    privacy: 'public'
+  });
 
 
-const [isEditingProfile, setIsEditingProfile] = useState(false);
-const [editProfileForm, setEditProfileForm] = useState({
+
+
+
+
+
+
+
+  const formatDate = (isoString) => {
+    const date = new Date(isoString);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const formatTime = (timeString) => {
+    const [hours, minutes] = timeString.split(':');
+    const date = new Date();
+    date.setHours(parseInt(hours, 10));
+    date.setMinutes(parseInt(minutes, 10));
+    const options = { hour: 'numeric', minute: 'numeric', hour12: true };
+    return date.toLocaleString('en-US', options).toLowerCase();
+  };
+
+
+
+  //edit transactions
+  const handleEdit = (booking) => {
+    if (editModalOpen) return;
+    setCurrentBooking(booking);
+
+    const selectedServices = servicesOptions.find(
+      s => s.services_id === Number(booking.services_id)
+    );
+    setEditServices(selectedServices ? [selectedServices] : []);
+    setEditTotal(Number(booking.total));
+    setEditDate(formatDate(booking.Date));
+    setEditTime(formatTime(booking.Time));
+    setEditPayment(booking.paymentinfo_id);
+    setEditModalOpen(true);
+  };
+
+
+
+  //save edited transaction
+  const handleSaveEdit = () => {
+    if (!currentBooking) return;
+    const services_id = editServices.map(s => s.services_id); 
+    fetch(`http://localhost:3000/api/update-transaction`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        recordID: currentBooking.recordID,
+        services_id: editServices.map(s => s.services_id), // array of IDs or comma-separated string
+        Date: editDate,
+        Time: editTime,
+        total: editTotal,
+        paymentinfo_id: editPayment,
+      }),
+    })
+      .then(res => res.json())
+      .then(data => {
+        alert('Booking updated successfully!');
+        fetchBookings(); // Refresh bookings
+        setEditModalOpen(false);
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('Failed to update booking.');
+      });
+  };
+
+
+
+
+    //delete transaction
+  function handleDelete(booking) {
+    if (confirm(`Are you sure you want to delete appointment record ${booking.recordID}?`)) {
+      fetch('http://localhost:3000/transactions/delete-by-record', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          recordID: booking.recordID,
+          user_id: user.user_id
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
+        alert(data.message);
+        fetchBookings(); // refresh list
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert("Failed to delete appointment.");
+      });
+    }
+  }
+
+
+
+  //total pending payments
+  useEffect(() => {
+    fetchBookings();
+    if (user && user.user_id) {
+      fetch(`http://localhost:3000/api/client/total-pending?user_id=${user.user_id}`)
+        .then(res => res.json())
+        .then(data => {
+          setTotalPending(data.totalPending || 0);
+        })
+        .catch(err => console.error('Error fetching total pending:', err));
+    }
+  }, [user]);
+
+  
+
+  // Fetch recent appointments with status paid and declined
+  const fetchRecentConfirmed = () => {
+    if (user && user.user_id) {
+      fetch(`http://localhost:3000/api/client/transactions-paid?user_id=${user.user_id}`)
+        .then(res => res.json())
+        .then(data => {
+          setRecentAppointments(data); // data is already filtered for 'confirmed'
+        })
+        .catch(error => {
+          console.error('Error fetching recent appointments:', error);
+        });
+    }
+  };
+
+
+
+
+  // Populate form fields when entering edit mode
+  const handleEditProfile = () => {
+    setEditProfileForm({
+      firstname: profileData.firstName,
+      lastname: profileData.lastName,
+      email: profileData.email,
+      username: user?.username || ''
+    });
+    setIsEditingProfile(true);
+  };
+
+
+  // Handle form input change
+  const handleProfileInputChange = (field, value) => {
+    setEditProfileForm(prev => ({ ...prev, [field]: value }));
+  };
+
+
+
+  // Form state for editing profile
+  const [editProfileForm, setEditProfileForm] = useState({
   firstname: '',
   lastname: '',
   email: '',
   username: ''
-});
-
-// Populate form fields when entering edit mode
-const handleEditProfile = () => {
-  setEditProfileForm({
-    firstname: profileData.firstName,
-    lastname: profileData.lastName,
-    email: profileData.email,
-    username: user?.username || ''
   });
-  setIsEditingProfile(true);
-};
-
-// Handle form input change
-const handleProfileInputChange = (field, value) => {
-  setEditProfileForm(prev => ({ ...prev, [field]: value }));
-};
-
-// Handle saving the profile info
 
 
 
-const formatDate = (isoString) => {
-  const date = new Date(isoString);
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-};
 
-const formatTime = (timeString) => {
-  const [hours, minutes] = timeString.split(':');
-  const date = new Date();
-  date.setHours(parseInt(hours, 10));
-  date.setMinutes(parseInt(minutes, 10));
-  const options = { hour: 'numeric', minute: 'numeric', hour12: true };
-  return date.toLocaleString('en-US', options).toLowerCase();
-};
-
-const handleEdit = (booking) => {
-  if (editModalOpen) return;
-  setCurrentBooking(booking);
-
-  // Since services_id is an int, filter directly
-  const selectedServices = servicesOptions.find(
-    s => s.services_id === booking.services_id
-  );
-  setEditServices(selectedServices ? [selectedServices] : []);
-    // Calculate initial total
-  setEditTotal(Number(booking.total));
-  setEditDate(formatDate(booking.Date));
-  setEditTime(formatTime(booking.Time));
-  setEditPayment(booking.paymentinfo_id);
-  setEditModalOpen(true);
-};
-
-const handleSaveEdit = () => {
-  if (!currentBooking) return;
-  
-   const services_id = editServices.map(s => s.services_id); 
-  fetch(`http://localhost:3000/api/update-transaction`, {
-    method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      recordID: currentBooking.recordID,
-      services_id: editServices.map(s => s.services_id), // array of IDs or comma-separated string
-      Date: editDate,
-      Time: editTime,
-      total: editTotal,
-      paymentinfo_id: editPayment,
-    }),
-  })
-    .then(res => res.json())
-    .then(data => {
-      alert('Booking updated successfully!');
-      fetchBookings(); // Refresh bookings
-      setEditModalOpen(false);
-    })
-    .catch(error => {
-      console.error('Error:', error);
-      alert('Failed to update booking.');
-    });
-};
-
-const fetchBookings = () => {
-  if (user && user.user_id) {
-    fetch(`http://localhost:3000/api/client/transactions-pending?user_id=${user?.user_id}`)
-      .then(res => res.json())
-      .then(data => {
-        if (Array.isArray(data)) {
-          setBookings(data);
-        } else if (data && Array.isArray(data.data)) {
-          setBookings(data.data);
-        } else {
-          setBookings([]);
-        }
-      })
-      .catch(error => {
-        console.error('Error fetching transactions:', error);
-      });
-  }
-};
 
 useEffect(() => {
-  // existing fetch bookings code...
-  fetchBookings();
-
-  // fetch total pending payments
-  if (user && user.user_id) {
-    fetch(`http://localhost:3000/api/client/total-pending?user_id=${user.user_id}`)
-      .then(res => res.json())
-      .then(data => {
-        setTotalPending(data.totalPending || 0);
-      })
-      .catch(err => console.error('Error fetching total pending:', err));
-  }
+  fetchUserProfile();
 }, [user]);
 
-
-
-const fetchRecentConfirmed = () => {
-  if (user && user.user_id) {
-    fetch(`http://localhost:3000/api/client/transactions-paid?user_id=${user.user_id}`)
-      .then(res => res.json())
-      .then(data => {
-        setRecentAppointments(data); // data is already filtered for 'confirmed'
-      })
-      .catch(error => {
-        console.error('Error fetching recent appointments:', error);
-      });
-  }
-};
-
-
-function handleDelete(booking) {
-  if (confirm(`Are you sure you want to delete appointment record ${booking.recordID}?`)) {
-    fetch('http://localhost:3000/transactions/delete-by-record', {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        recordID: booking.recordID,
-        user_id: user.user_id
-      })
-    })
-    .then(res => res.json())
-    .then(data => {
-      alert(data.message);
-      fetchBookings(); // refresh list
-    })
-    .catch(error => {
-      console.error('Error:', error);
-      alert("Failed to delete appointment.");
-    });
-  }
-}
-const handleProfileSave = () => {
-  fetch(`http://localhost:3000/api/users/${user.user_id}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      username: editProfileForm.username,
-      firstname: editProfileForm.firstname,
-      lastname: editProfileForm.lastname,
-      email: editProfileForm.email,
-    }),
-  })
-  .then(res => {
-    if (res.ok) {
-      // If response status is 204 No Content, no body
-      if (res.status === 204) {
-        alert('Profile updated successfully!');
-        // Update local user state here if needed
-        setUser(prev => ({ ...prev, ...editProfileForm }));
-        localStorage.setItem('user', JSON.stringify({ ...prev, ...editProfileForm }));
-        return; // No body to parse
-      }
-      // For other successful responses, response might be plain text
-      return res.text();
-    } else {
-      // Handle error responses
-      return res.text().then(text => {
-        throw new Error(text || 'Update failed');
-      });
-    }
-  })
-  .then(data => {
-    if (data) {
-      // If backend returns a message like "User updated successfully"
-      alert(data);
-    }
-  })
-  .catch(err => {
-    console.error('Error:', err);
-    alert('Error updating profile: ' + err.message);
-  });
-};
-
-useEffect(() => {
+const fetchUserProfile = () => {
   if (user && user.user_id) {
     fetch(`http://localhost:3000/api/users/${user.user_id}`)
       .then(res => res.json())
       .then(data => {
-        // Populate profileData with the fetched data
         setProfileData(prev => ({
           ...prev,
           firstName: data.firstname || '',
           lastName: data.lastname || '',
           email: data.email || '',
-          username: data.username || '',
         }));
       })
       .catch(err => {
         console.error('Error fetching user profile:', err);
+        alert('Failed to fetch user profile.');
       });
   }
-}, [user]);
+};
+
+
+
+  //for button to save profile changes
+    const handleProfileSave = () => {
+      console.log(`Sending request to: http://localhost:3000/api/users/${user.user_id}`);
+      const confirmed = window.confirm('Are you sure you want to edit your profile?');
+      if (!confirmed) return;
+
+      // Proceed to save
+      fetch(`http://localhost:3000/api/users/${user.user_id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: editProfileForm.username,
+          firstname: editProfileForm.firstname,
+          lastname: editProfileForm.lastname,
+          email: editProfileForm.email,
+        }),
+      })
+      .then(res => {
+        if (res.ok) {
+          if (res.status === 204) {
+            // No content, treat as success
+            return null; // or a success indicator
+          } else {
+            return res.json();
+          }
+        } else {
+          return res.text().then(text => {
+            throw new Error(text || 'Update failed');
+          });
+        }
+      })
+      .then(data => {
+        if (data !== null) {
+          alert(data.message || data);
+        } else {
+          // success with no content
+          alert('Profile updated successfully!');
+        }
+        // update local state after success
+        const updatedUser = { ...user, ...editProfileForm };
+        setUser(updatedUser);
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+        setProfileData({
+          firstName: editProfileForm.firstname,
+          lastName: editProfileForm.lastname,
+          email: editProfileForm.email,
+        });
+        setIsEditingProfile(false);
+      })
+      .catch(err => {
+        console.error('Error:', err);
+        alert('Error updating profile: ' + (err?.message ?? err ?? 'Unknown error'));
+      });
+    };
+
+
+
+
+
+
+
+
 
   const handleLogout = () => {
     const confirmLogout = window.confirm("Are you sure you want to log out?");
@@ -335,6 +365,7 @@ useEffect(() => {
       navigate('/');
     }
   };
+
 
   return (
     <div className="container mt-5">
@@ -390,7 +421,7 @@ useEffect(() => {
                     className={`nav-link ${activeTab === 'myAppointments' ? 'active' : ''}`}
                     style={{ cursor: 'pointer' }}
                     onClick={() => {
-                      showContent('profile'); // optional, if you still want to show other content
+                      showContent('profile'); 
                       setActiveTab('myAppointments');
                     }}
                   >
@@ -403,8 +434,8 @@ useEffect(() => {
                     className={`nav-link ${activeTab === 'recentAppointments' ? 'active' : ''}`}
                     style={{ cursor: 'pointer' }}
                     onClick={() => {
-                      showContent('profile'); // optional
-                      fetchRecentConfirmed(); // fetch only confirmed
+                      showContent('profile'); 
+                      fetchRecentConfirmed(); 
                       setActiveTab('recentAppointments');
                     }}
                   >
@@ -599,11 +630,10 @@ useEffect(() => {
           {activeTab === 'recentAppointments' && (
             <>
             <h3 className='title'>Recent Appointments</h3>
-          {recentAppointments.length > 0 && (
+          {recentAppointments.length > 0 ? (
             <table className="table table-striped">
               <thead>
                 <tr>
-                  <th>Record ID</th>
                   <th>Username</th>
                   <th>Service Name</th>
                   <th>Payment Description</th>
@@ -616,23 +646,23 @@ useEffect(() => {
               <tbody>
                 {recentAppointments.map((appt) => (
                   <tr key={appt.recordID}>
-                    <td>{appt.recordID}</td>
                     <td>{user?.username || 'Guest'}</td>
                     <td>{appt.services_name}</td>
                     <td>{appt.paymentdescription}</td>
-                    <td>{appt.Date}</td>
-                    <td>{appt.Time}</td>
-                    <td>${Number(appt.total).toFixed(2)}</td>
+                    <td>{formatDate(appt.Date)}</td>
+                    <td>{formatTime(appt.Time)}</td>
+                    <td>Php {Number(appt.total).toFixed(2)}</td>
                     <td>{appt.status}</td>
                     <td>
-                      {/* Optional: Add actions like Edit/Delete */}
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
-          )}
-            </>
+          ) : (
+      <p>No recent appointments</p>
+    )}
+  </>
           )}
 {activeTab === 'settings' && (
   <div className="settings-form mt-4 p-3 border rounded bg-light">

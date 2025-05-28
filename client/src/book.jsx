@@ -4,6 +4,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import myLogo from './assets/LOGOSALON1.png';
 import './book.css';
 import Modal from 'react-modal';
+import { useNavigate } from 'react-router-dom';
 
 
 
@@ -13,7 +14,7 @@ const Book = ({ user_id }) => {
    
 
   useEffect(() => {
-        const userDataStr = localStorage.getItem('user');
+    const userDataStr = localStorage.getItem('user');
     if (userDataStr) {
       const userData = JSON.parse(userDataStr);
       console.log('User data from localStorage in Book:', userData);
@@ -22,6 +23,7 @@ const Book = ({ user_id }) => {
       console.log('No user data found in localStorage');
     }
   }, []);
+
   
   const [services, setServices] = useState([]);
   const [selectedService, setSelectedService] = useState(null);
@@ -32,8 +34,11 @@ const Book = ({ user_id }) => {
   const [appointmentTime, setAppointmentTime] = useState('');
   const [paymentOptions, setPaymentOptions] = useState([]);
   const [selectedPayment, setSelectedPayment] = useState('');
+  const navigate = useNavigate();
 
   useEffect(() => {
+
+    //fetching services
     const fetchServices = async () => {
       try {
         const response = await fetch('http://localhost:3000/api/services');
@@ -51,7 +56,10 @@ const Book = ({ user_id }) => {
         console.error("Error fetching services:", error);
       }
     };
+    fetchServices();
 
+
+    //fetching payment options
     const fetchPaymentOptions = async () => {
       try {
           const response = await fetch('http://localhost:3000/api/payment-options');
@@ -59,36 +67,40 @@ const Book = ({ user_id }) => {
               throw new Error(`HTTP error! status: ${response.status}`);
           }
           const data = await response.json();
-              // Log the raw data to see property names
-    console.log('Fetched payment options:', data);
+      console.log('Fetched payment options:', data);
 
-    // If the ID property is different, map it:
-    const formattedData = data.map((option, index) => ({
-      ...option,
-      paymentinfo_id: index+1, // adapt as needed
-    }));
-    setPaymentOptions(formattedData);
-      } catch (error) {
-          console.error("Error fetching payment options:", error);
-      }
-  };
-
-    fetchServices();
+      const formattedData = data.map((option, index) => ({
+        ...option,
+        paymentinfo_id: index+1, // adapt as needed
+      }));
+      setPaymentOptions(formattedData);
+        } catch (error) {
+            console.error("Error fetching payment options:", error);
+        }
+    };
     fetchPaymentOptions();
   }, [user_id]);
 
-  const openModal = (service) => {
-        if (!modalIsOpen) { // Prevent opening if already open
-            setSelectedService(service);
-            setModalIsOpen(true);
-        }
-    };
 
+
+  //open modal function
+  const openModal = (service) => {
+    if (!modalIsOpen) { // Prevent opening if already open
+        setSelectedService(service);
+        setModalIsOpen(true);
+    }
+  };
+
+
+  //close modal function
   const closeModal = () => {
     setModalIsOpen(false);
     setSelectedService(null);
   };
 
+  
+
+  //add to booking function
   const addToBooking = () => {
     if (selectedService) {
       const existing = selectedServices.find(service => service.services_id === selectedService.services_id);
@@ -105,97 +117,101 @@ const Book = ({ user_id }) => {
     }
   };
 
-const confirmBooking = async () => {
-  if (!selectedPayment) {
-    alert("Please select a payment method.");
-    return;
-  }
-  const selectedOption = paymentOptions.find(
-    (option) => option.paymentdescription === selectedPayment
-  );
-  if (!selectedOption) {
-    alert("Invalid payment method selected.");
-    return;
-  }
-  const paymentId = selectedOption.paymentinfo_id;
- console.log('Selected payment info ID:', paymentId);
-  if (window.confirm("Are you sure you want to confirm your booking for the selected services?")) {
-    console.log('Selected Payment ID:', paymentId);
-    console.log('Preparing to submit:', {
-      user_id: userId,
-      services_id: services.services_id, // Collect all service IDs
-      paymentinfo_id: paymentId,
-      appointment_date: appointmentDate,
-      appointment_time: appointmentTime,
-      total: selectedServices.reduce((total, service) => total + service.price, 0), // Calculate total price
-      status: 'Pending',
-    });  
-    try {
-      for (const service of selectedServices) {
-        const response = await fetch('http://localhost:3000/transactions', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            user_id: userId,
-            services_id: service.services_id,
-            paymentinfo_id: paymentId,
-            appointment_date: appointmentDate,
-            appointment_time: appointmentTime,
-            total: service.price,
-            status: 'Pending',
-          }),
-        });
 
-        if (!response.ok) {
-          const error = await response.json();
-          console.error('Error response:', error);
-          throw new Error(`Error booking service: ${service.services_name}. ${error.message || 'No error message provided.'}`);
-        }
-      }
-      alert('Services booked successfully!');
-      setSelectedServices([]);
-      setConfirmationModalIsOpen(false);
-    } catch (error) {
-      alert('There was a problem with your booking. Please try again later.');
-      console.error(error);
+
+
+  //confirm booking function
+  const confirmBooking = async () => {
+    if (!selectedPayment) {
+      alert("Please select a payment method.");
+      return;
     }
-  }
-};
+    const selectedOption = paymentOptions.find(
+      (option) => option.paymentdescription === selectedPayment
+    );
+    if (!selectedOption) {
+      alert("Invalid payment method selected.");
+      return;
+    }
+    const paymentId = selectedOption.paymentinfo_id;
+  console.log('Selected payment info ID:', paymentId);
+    if (window.confirm("Are you sure you want to confirm your booking for the selected services?")) {
+      console.log('Selected Payment ID:', paymentId);
+      console.log('Preparing to submit:', {
+        user_id: userId,
+        services_id: services.services_id, // Collect all service IDs
+        paymentinfo_id: paymentId,
+        appointment_date: appointmentDate,
+        appointment_time: appointmentTime,
+        total: selectedServices.reduce((total, service) => total + service.price, 0), // Calculate total price
+        status: 'Pending',
+      });  
+      try {
+        for (const service of selectedServices) {
+          const response = await fetch('http://localhost:3000/transactions', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              user_id: userId,
+              services_id: service.services_id,
+              paymentinfo_id: paymentId,
+              appointment_date: appointmentDate,
+              appointment_time: appointmentTime,
+              total: service.price,
+              status: 'Pending',
+            }),
+          });
+
+          if (!response.ok) {
+            const error = await response.json();
+            console.error('Error response:', error);
+            throw new Error(`Error booking service: ${service.services_name}. ${error.message || 'No error message provided.'}`);
+          }
+        }
+        alert('Services booked successfully!');
+        navigate('/profile');
+        setSelectedServices([]);
+        setConfirmationModalIsOpen(false);
+      } catch (error) {
+        alert('There was a problem with your booking. Please try again later.');
+        console.error(error);
+      }
+    }
+  };
 
 
 
-
-
-
-
+  //remove service from booking function
   const removeService = (serviceId) => {
     if (window.confirm("Are you sure you want to remove this service from your booking?")) {
       setSelectedServices(prev => prev.filter(service => service.services_id !== serviceId));
     }
   };
 
+
   const closeConfirmationModal = () => {
     setConfirmationModalIsOpen(false);
   };
+
+
 
   const addMoreServices = () => {
     closeConfirmationModal();
   };
 
+
+
   const handleLogout = () => {
     const confirmLogout = window.confirm("Are you sure you want to log out?");
     if (confirmLogout) {
-      // Simulate logging out (e.g., clear user data)
-      setUsers([]);
-      setAppointments([]);
       setMessage('Logged out successfully!');
-      
-      // Redirect to the homepage (or login page)
-      window.location.href = '/'; // Change this to your actual login page URL
+      localStorage.removeItem('user'); 
+      window.location.href = '/'; 
     }
   };
+
 
   return (
     <div id="app">

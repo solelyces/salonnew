@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import 'bootstrap/dist/css/bootstrap.min.css'; // Ensure Bootstrap CSS is imported  
-import myLogo from './assets/LOGOSALON1.png'; // Import your image here
+import 'bootstrap/dist/css/bootstrap.min.css';  
+import myLogo from './assets/LOGOSALON1.png';
 import { GiCheckMark } from "react-icons/gi";
-import './about.css'; // Import your CSS file here
-import Jane from './assets/jane.jpg'; // Import your image here
-import Kate from './assets/precious.jpg'; // Import your image here
-import John from './assets/john.jpg'; // Import your image here
+import './about.css'; 
+import Jane from './assets/jane.jpg'; 
+import Kate from './assets/precious.jpg';
+import John from './assets/john.jpg'; 
 
 const About = () => {
   const [activeContent, setActiveContent] = useState('about');
@@ -18,13 +18,7 @@ const About = () => {
   const handleLogout = () => {
     const confirmLogout = window.confirm("Are you sure you want to log out?");
     if (confirmLogout) {
-      // Simulate logging out (e.g., clear user data)
-      // setUsers([]);
-      // setAppointments([]);
-      // setMessage('Logged out successfully!');
-      
-      // Redirect to the homepage (or login page)
-      window.location.href = '/'; // Change this to your actual login page URL
+      window.location.href = '/'; 
     }
   };
 
@@ -52,7 +46,6 @@ const About = () => {
                 </li>
               </ul>
             </div>
-            {/* Search form */}
             <form className="d-flex align-items-center my-2 me-5" role="search">
               <input
                 className="form-control me-4"
@@ -72,15 +65,17 @@ const About = () => {
       <section className="about-us-wrapper" aria-labelledby="about-title" style={aboutSectionStyle}>
         <h1 id="about-title">Welcome to Soleil Beauty Salon</h1>
         <p className="section-description">
-          Soleil Beauty Salon is your premier destination for luxurious beauty and wellness services. Since our founding, we have dedicated ourselves to delivering exceptional experiences that celebrate and enhance your natural beauty.
+          Soleil Beauty Salon is your premier destination for luxurious beauty and wellness services. 
+          Since our founding, we have dedicated ourselves to delivering exceptional experiences that celebrate and enhance your natural beauty.
         </p>
         <p>
-          Our professional team combines expert techniques, premium products, and personalized approaches to provide a wide range of services tailored just for you. At Soleil, we create more than just beauty treatments — we create moments of indulgence and confidence.
+          Our professional team combines expert techniques, premium products, and personalized approaches to provide a wide range of services 
+          tailored just for you. At Soleil, we create more than just beauty treatments — we create moments of indulgence and confidence.
         </p>
 
         <h2>Our Vision</h2>
         <p>
-          To be a sanctuary where beauty meets innovation, and every client’s confidence shines through radiant health and style.
+          To be a sanctuary where beauty meets innovation, and every client's confidence shines through radiant health and style.
         </p>
 
         <h2>Our Core Values</h2>
@@ -136,11 +131,9 @@ const About = () => {
           role="button" 
           tabIndex={0} 
           aria-pressed="false" 
-          onClick={() => alert('Booking system coming soon!')}
-          onKeyDown={(e) => { if(e.key === 'Enter' || e.key === ' ') alert('Booking system coming soon!'); }}
           style={callToActionStyle}
         >
-          Book Your Appointment Now
+          <Link className="btn btn-lg" to="/book" onClick={() => showContent('book')}>Book an Appointment Now!</Link>
         </div>
 
         <div className="social-icons" aria-label="Follow Soleil Beauty Salon on social media" style={socialIconsStyle}>
@@ -162,7 +155,6 @@ const About = () => {
         </div>
       </section>
 
-      {/* Footer */}
       <div className="container">
         <footer className="py-3 my-4">
           <ul className="nav justify-content-center border-bottom pb-3 mb-3">
@@ -180,7 +172,6 @@ const About = () => {
   )
 };
 
-// Inline CSS styles as JS objects for JSX styling
 
 const aboutSectionStyle = {
   maxWidth: '1200px',

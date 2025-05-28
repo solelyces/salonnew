@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link, BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import 'bootstrap/dist/css/bootstrap.min.css'; // Ensure Bootstrap CSS is imported
-import myImage from './assets/girl.jpg'; // Import your image here
-import myLogo from './assets/LOGOSALON1.png'; // Import your image here
+import 'bootstrap/dist/css/bootstrap.min.css'; 
+import myImage from './assets/girl.jpg'; 
+import myLogo from './assets/LOGOSALON1.png'; 
 import LoginForm from './login';
 
 const Home = ({user}) => {
@@ -21,13 +21,10 @@ const Home = ({user}) => {
   const handleLogout = () => {
     const confirmLogout = window.confirm("Are you sure you want to log out?");
     if (confirmLogout) {
-      // Simulate logging out (e.g., clear user data)
       setUsers([]);
       setAppointments([]);
       setMessage('Logged out successfully!');
-      
-      // Redirect to the homepage (or login page)
-      window.location.href = '/'; // Change this to your actual login page URL
+      window.location.href = '/'; 
     }
   };
 
@@ -55,7 +52,6 @@ const Home = ({user}) => {
               </li>
             </ul>
             </div>
-            {/* Search form */}
             <form className="d-flex align-items-center my-2 me-5" role="search">
               <input
                 className="form-control me-4"
@@ -86,9 +82,8 @@ const Home = ({user}) => {
                 <button
                   type="button"
                   className="btn btn-primary btn-lg px-4"
-                  onClick={() => showContent('projects')}
                 >
-                  Book Now
+                  <Link className="btn btn-primary btn-lg px-4" to="/book" onClick={() => showContent('book')}>Book</Link>
                 </button>
                 <button
                   type="button"
